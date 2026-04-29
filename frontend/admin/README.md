@@ -31,8 +31,8 @@ pnpm dev
 
 | Поле | Значение |
 |---|---|
-| Email | `moderator` |
-| Пароль | `demo123` |
+| Email | `moderator@patissons.ru` |
+| Пароль | `demo1234` |
 
 Аккаунт с ролью `user` в этой панели не работает — клиент отзывает токен и редиректит на `/access_denied`.
 

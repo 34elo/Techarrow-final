@@ -4,26 +4,6 @@
 
 > Этот репозиторий — **только frontend**. Backend поднимается отдельно; контракт API — в [`openapi.json`](./openapi.json).
 
-## Демо
-
-| Площадка | Ссылка |
-|---|---|
-| Пользовательская панель (web) | <https://example.com> |
-| Панель модерации (admin) | <https://admin.example.com> |
-
-> Ссылки — заглушки до деплоя.
-
-**Аккаунт модератора для жюри** (готов сразу после старта backend, без скриптов):
-
-| Логин | Пароль |
-|---|---|
-| `moderator` | `demo123` |
-
-Дополнительные моковые аккаунты создаются скриптом `python backend/create_mock_data.py` (пароль для всех — `11111111`):
-
-- модератор → `mock.moderator@example.com` (только в admin),
-- игроки → `mock.alisa@example.com`, `mock.boris@example.com`, `mock.vika@example.com`, `mock.denis@example.com`, `mock.elena@example.com` (только в web).
-
 Полная таблица — в [корневом README](../README.md#демо-аккаунты).
 
 ## Структура
