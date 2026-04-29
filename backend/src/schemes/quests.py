@@ -133,6 +133,7 @@ class QuestListFilters(BaseModel):
     min_duration_minutes: int | None = Field(default=None, ge=1)
     max_duration_minutes: int | None = Field(default=None, ge=1)
     difficulties: list[int] | None = None
+    search: str | None = Field(default=None, min_length=1, max_length=255)
     city: str | None = Field(default=None, min_length=1, max_length=255)
     near_latitude: float | None = Field(default=None, ge=-90, le=90)
     near_longitude: float | None = Field(default=None, ge=-180, le=180)
@@ -153,6 +154,12 @@ class QuestListFilters(BaseModel):
         min_duration_minutes: int | None = Query(default=None, ge=1),
         max_duration_minutes: int | None = Query(default=None, ge=1),
         difficulties: list[int] | None = Query(default=None),
+        search: str | None = Query(
+            default=None,
+            min_length=1,
+            max_length=255,
+            description="Поиск по названию квеста с нормализацией и неточным совпадением",
+        ),
         city: str | None = Query(default=None, min_length=1, max_length=255),
         near_latitude: float | None = Query(
             default=None,
@@ -194,6 +201,7 @@ class QuestListFilters(BaseModel):
             min_duration_minutes=min_duration_minutes,
             max_duration_minutes=max_duration_minutes,
             difficulties=difficulties,
+            search=search,
             city=city,
             near_latitude=near_latitude,
             near_longitude=near_longitude,
@@ -218,6 +226,7 @@ class QuestResponse(BaseModel):
     creator: QuestCreatorResponse
     is_favourite: bool = False
     is_completed: bool = False
+    best_completion_seconds: float | None = None
 
     @classmethod
     def from_quest_model(
@@ -226,6 +235,7 @@ class QuestResponse(BaseModel):
         *,
         is_favourite: bool = False,
         is_completed: bool = False,
+        best_completion_seconds: float | None = None,
     ) -> "QuestResponse":
         from src.models.quests import QuestModel
 
@@ -251,6 +261,7 @@ class QuestResponse(BaseModel):
             creator=QuestCreatorResponse.model_validate(quest.creator),
             is_favourite=is_favourite,
             is_completed=is_completed,
+            best_completion_seconds=best_completion_seconds,
         )
 
 
@@ -277,6 +288,7 @@ class QuestDetailResponse(QuestResponse):
         *,
         is_favourite: bool = False,
         is_completed: bool = False,
+        best_completion_seconds: float | None = None,
     ) -> "QuestDetailResponse":
         from src.models.quests import QuestModel
 
@@ -289,6 +301,7 @@ class QuestDetailResponse(QuestResponse):
             quest,
             is_favourite=is_favourite,
             is_completed=is_completed,
+            best_completion_seconds=best_completion_seconds,
         )
         return cls(
             **base.model_dump(),

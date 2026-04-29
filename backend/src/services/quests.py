@@ -1,11 +1,12 @@
 import asyncio
 import re
+import unicodedata
 from datetime import datetime, timezone
 from difflib import SequenceMatcher
 
 from fastapi import HTTPException, status
 from fastapi import UploadFile
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -31,6 +32,7 @@ from src.services.minio import MinioService
 from src.services.quest_pdf_export import QuestPdfExportService
 
 NEAR_RADIUS_METERS = 1000
+ZERO_WIDTH_RE = re.compile(r"[\u200b-\u200d\ufeff]")
 
 
 class QuestService:
@@ -38,10 +40,10 @@ class QuestService:
         self.session = session
 
     async def create_quest(
-        self,
-        current_user: UserResponse,
-        payload: QuestCreate,
-        image: UploadFile | None = None,
+            self,
+            current_user: UserResponse,
+            payload: QuestCreate,
+            image: UploadFile | None = None,
     ) -> QuestResponse:
         image_file_id = None
         if image is not None:
@@ -82,16 +84,17 @@ class QuestService:
         return await self._get_quest_response(quest.id)
 
     async def get_quest(
-        self,
-        quest_id: int,
-        current_user: UserResponse | None = None,
+            self,
+            quest_id: int,
+            current_user: UserResponse | None = None,
     ) -> QuestDetailResponse:
         quest = await self._get_quest_with_points(quest_id)
         is_moderator = (
-            current_user is not None
-            and current_user.role.value == UserRole.MODERATOR.value
+                current_user is not None
+                and current_user.role.value == UserRole.MODERATOR.value
         )
-        if quest.status != QuestStatus.PUBLISHED and not is_moderator:
+        if quest.status != QuestStatus.PUBLISHED and not is_moderator and (
+                current_user is None or current_user.id != quest.creator_id):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Quest not found",
@@ -101,11 +104,13 @@ class QuestService:
         if current_user is not None:
             is_favourite = await self._is_favourite(current_user.id, quest.id)
             is_completed = await self._is_completed(current_user.id, quest.id)
+        best_map = await self._best_completion_seconds_by_quest_ids([quest.id])
         try:
             return QuestDetailResponse.from_quest_model(
                 quest,
                 is_favourite=is_favourite,
                 is_completed=is_completed,
+                best_completion_seconds=best_map.get(quest.id),
             )
         except ValueError as exc:
             raise HTTPException(
@@ -126,9 +131,9 @@ class QuestService:
         return pdf_content
 
     async def get_my_quests(
-        self,
-        current_user: UserResponse,
-        filters: QuestListFilters,
+            self,
+            current_user: UserResponse,
+            filters: QuestListFilters,
     ) -> QuestPageResponse:
         return await self._get_paginated_quests(
             select(QuestModel)
@@ -143,9 +148,9 @@ class QuestService:
         )
 
     async def get_all_quests(
-        self,
-        filters: QuestListFilters,
-        current_user: UserResponse | None = None,
+            self,
+            filters: QuestListFilters,
+            current_user: UserResponse | None = None,
     ) -> QuestPageResponse:
         statement = (
             select(QuestModel)
@@ -156,8 +161,8 @@ class QuestService:
             .order_by(QuestModel.id.desc())
         )
         is_moderator = (
-            current_user is not None
-            and current_user.role.value == UserRole.MODERATOR.value
+                current_user is not None
+                and current_user.role.value == UserRole.MODERATOR.value
         )
         if not is_moderator:
             statement = statement.where(QuestModel.status == QuestStatus.PUBLISHED)
@@ -194,10 +199,10 @@ class QuestService:
         )
 
     async def update_my_quest_archive_status(
-        self,
-        current_user: UserResponse,
-        quest_id: int,
-        target_status: QuestArchiveStatusSchema,
+            self,
+            current_user: UserResponse,
+            quest_id: int,
+            target_status: QuestArchiveStatusSchema,
     ) -> QuestResponse:
         quest = await self._get_quest(quest_id)
         self._ensure_creator(current_user, quest)
@@ -222,7 +227,11 @@ class QuestService:
         await self.session.commit()
         await self.session.refresh(quest)
         quest = await self._get_quest(quest_id)
-        return self._quest_to_response(quest)
+        best_map = await self._best_completion_seconds_by_quest_ids([quest.id])
+        return self._quest_to_response(
+            quest,
+            best_completion_seconds=best_map.get(quest.id),
+        )
 
     async def delete_my_quest(self, current_user: UserResponse, quest_id: int) -> None:
         quest = await self._get_quest(quest_id)
@@ -236,10 +245,10 @@ class QuestService:
         await self.session.commit()
 
     async def create_complaint(
-        self,
-        current_user: UserResponse,
-        quest_id: int,
-        payload: QuestComplaintCreateRequest,
+            self,
+            current_user: UserResponse,
+            quest_id: int,
+            payload: QuestComplaintCreateRequest,
     ) -> QuestComplaintResponse:
         quest = await self._get_quest(quest_id)
         if quest.status != QuestStatus.PUBLISHED:
@@ -269,7 +278,7 @@ class QuestService:
         total = len(complaints)
         items = [
             QuestComplaintResponse.model_validate(complaint)
-            for complaint in complaints[offset : offset + limit]
+            for complaint in complaints[offset: offset + limit]
         ]
         return QuestComplaintPageResponse(items=items, total=total, limit=limit, offset=offset)
 
@@ -315,9 +324,9 @@ class QuestService:
         await self.session.commit()
 
     async def get_favorite_quests(
-        self,
-        current_user: UserResponse,
-        filters: QuestListFilters,
+            self,
+            current_user: UserResponse,
+            filters: QuestListFilters,
     ) -> QuestPageResponse:
         statement = (
             select(QuestModel)
@@ -335,15 +344,21 @@ class QuestService:
         return await self._get_paginated_quests(statement, filters, current_user=current_user)
 
     async def _get_paginated_quests(
-        self,
-        statement,
-        filters: QuestListFilters,
-        *,
-        current_user: UserResponse | None = None,
+            self,
+            statement,
+            filters: QuestListFilters,
+            *,
+            current_user: UserResponse | None = None,
     ) -> QuestPageResponse:
         statement = self._apply_sql_filters(statement, filters)
         result = await self.session.execute(statement)
         quests = result.scalars().all()
+
+        if filters.search:
+            quests = [
+                quest for quest in quests
+                if self._matches_title_filter(quest.title, filters.search)
+            ]
 
         if filters.city:
             quests = [
@@ -357,8 +372,8 @@ class QuestService:
         page_quests = quests[start:end]
         favorite_ids: set[int] = set()
         completed_ids: set[int] = set()
-        if current_user is not None and page_quests:
-            page_quest_ids = [q.id for q in page_quests]
+        page_quest_ids = [q.id for q in page_quests]
+        if current_user is not None and page_quest_ids:
             favorite_ids = await self._favourite_quest_ids(
                 user_id=current_user.id,
                 quest_ids=page_quest_ids,
@@ -367,11 +382,13 @@ class QuestService:
                 user_id=current_user.id,
                 quest_ids=page_quest_ids,
             )
+        best_seconds_map = await self._best_completion_seconds_by_quest_ids(page_quest_ids)
         items = [
             self._quest_to_response(
                 quest,
                 is_favourite=quest.id in favorite_ids,
                 is_completed=quest.id in completed_ids,
+                best_completion_seconds=best_seconds_map.get(quest.id),
             )
             for quest in page_quests
         ]
@@ -418,7 +435,12 @@ class QuestService:
 
     async def _get_quest_response(self, quest_id: int) -> QuestResponse:
         quest = await self._get_quest(quest_id)
-        return self._quest_to_response(quest, is_favourite=False)
+        best_map = await self._best_completion_seconds_by_quest_ids([quest.id])
+        return self._quest_to_response(
+            quest,
+            is_favourite=False,
+            best_completion_seconds=best_map.get(quest.id),
+        )
 
     async def _mark_exported_quest_completed(self, user_id: int, quest: QuestModel) -> None:
         points_count = len(self._sorted_points(quest))
@@ -470,17 +492,19 @@ class QuestService:
         return sorted(quest.points or [], key=lambda point: point.id)
 
     def _quest_to_response(
-        self,
-        quest: QuestModel,
-        *,
-        is_favourite: bool = False,
-        is_completed: bool = False,
+            self,
+            quest: QuestModel,
+            *,
+            is_favourite: bool = False,
+            is_completed: bool = False,
+            best_completion_seconds: float | None = None,
     ) -> QuestResponse:
         try:
             return QuestResponse.from_quest_model(
                 quest,
                 is_favourite=is_favourite,
                 is_completed=is_completed,
+                best_completion_seconds=best_completion_seconds,
             )
         except ValueError as exc:
             raise HTTPException(
@@ -547,11 +571,11 @@ class QuestService:
         return complaint
 
     async def _update_quest_status(
-        self,
-        quest_id: int,
-        expected_status: QuestStatus,
-        new_status: QuestStatus,
-        rejection_reason: str | None = None,
+            self,
+            quest_id: int,
+            expected_status: QuestStatus,
+            new_status: QuestStatus,
+            rejection_reason: str | None = None,
     ) -> QuestResponse:
         quest = await self._get_quest(quest_id)
         if quest.status != expected_status:
@@ -568,7 +592,32 @@ class QuestService:
         await self.session.commit()
         await self.session.refresh(quest)
         quest = await self._get_quest(quest_id)
-        return self._quest_to_response(quest)
+        best_map = await self._best_completion_seconds_by_quest_ids([quest.id])
+        return self._quest_to_response(
+            quest,
+            best_completion_seconds=best_map.get(quest.id),
+        )
+
+    async def _best_completion_seconds_by_quest_ids(self, quest_ids: list[int]) -> dict[int, float]:
+        if not quest_ids:
+            return {}
+        elapsed_epoch = func.extract("epoch", QuestRunModel.completed_at - QuestRunModel.started_at)
+        result = await self.session.execute(
+            select(QuestRunModel.quest_id, func.min(elapsed_epoch))
+            .where(
+                QuestRunModel.quest_id.in_(quest_ids),
+                QuestRunModel.status == QuestRunStatus.COMPLETED,
+                QuestRunModel.completed_at.is_not(None),
+            )
+            .group_by(QuestRunModel.quest_id),
+        )
+        rows = result.all()
+        out: dict[int, float] = {}
+        for quest_id, seconds in rows:
+            if seconds is None:
+                continue
+            out[quest_id] = float(seconds)
+        return out
 
     @staticmethod
     def _ensure_creator(current_user: UserResponse, quest: QuestModel) -> None:
@@ -616,31 +665,126 @@ class QuestService:
 
     @classmethod
     def _matches_city_filter(cls, location: str, city: str) -> bool:
-        normalized_location = cls._normalize_text(location)
-        normalized_city = cls._normalize_text(city)
-        if not normalized_city:
+        return cls._matches_text_filter(location, city)
+
+    @classmethod
+    def _matches_title_filter(cls, title: str, search: str) -> bool:
+        return cls._matches_text_filter(title, search)
+
+    @classmethod
+    def _matches_text_filter(cls, value: str, query: str) -> bool:
+        normalized_value = cls._normalize_text(value)
+        normalized_query = cls._normalize_text(query)
+        if not normalized_query:
             return True
 
-        if normalized_city in normalized_location:
+        candidates = cls._text_match_candidates(normalized_value, normalized_query)
+        if any(
+                cls._is_partial_text_match(candidate, normalized_query)
+                for candidate in candidates
+        ):
             return True
 
-        location_parts = [part for part in re.split(r"\s+", normalized_location) if part]
-        city_parts = [part for part in re.split(r"\s+", normalized_city) if part]
-
-        candidates = [normalized_location, *location_parts]
-        if city_parts:
-            candidates.extend(city_parts)
-
-        best_ratio = max(
-            SequenceMatcher(None, normalized_city, candidate).ratio()
+        return any(
+            cls._is_close_text_match(candidate, normalized_query)
             for candidate in candidates
-            if candidate
         )
-        return best_ratio >= 0.72
+
+    @classmethod
+    def _text_match_candidates(cls, normalized_value: str, normalized_query: str) -> set[str]:
+        value_words = normalized_value.split()
+        query_words_count = len(normalized_query.split())
+        candidates = {normalized_value, *value_words}
+
+        if query_words_count > 1:
+            for window_size in range(
+                    max(1, query_words_count - 1),
+                    min(len(value_words), query_words_count + 1) + 1,
+            ):
+                candidates.update(cls._word_windows(value_words, window_size))
+
+        return {candidate for candidate in candidates if candidate}
+
+    @staticmethod
+    def _word_windows(words: list[str], size: int) -> list[str]:
+        return [
+            " ".join(words[start: start + size])
+            for start in range(0, len(words) - size + 1)
+        ]
+
+    @staticmethod
+    def _is_partial_text_match(candidate: str, normalized_query: str) -> bool:
+        if normalized_query in candidate:
+            return True
+
+        candidate_compact = candidate.replace(" ", "")
+        query_compact = normalized_query.replace(" ", "")
+        return bool(query_compact) and query_compact in candidate_compact
+
+    @classmethod
+    def _is_close_text_match(cls, candidate: str, normalized_query: str) -> bool:
+        candidate_compact = candidate.replace(" ", "")
+        query_compact = normalized_query.replace(" ", "")
+        if not candidate_compact or not query_compact:
+            return False
+
+        query_length = len(query_compact)
+        if abs(len(candidate_compact) - query_length) > cls._allowed_text_typos(query_length):
+            return False
+
+        if query_length <= 4 and candidate_compact[0] != query_compact[0]:
+            return False
+
+        ratio = SequenceMatcher(None, normalized_query, candidate).ratio()
+        if ratio < cls._min_text_similarity(query_length):
+            return False
+
+        return cls._levenshtein_distance(candidate_compact, query_compact) <= cls._allowed_text_typos(query_length)
+
+    @staticmethod
+    def _allowed_text_typos(length: int) -> int:
+        if length <= 4:
+            return 1
+        if length <= 8:
+            return 1
+        if length <= 14:
+            return 2
+        return 3
+
+    @staticmethod
+    def _min_text_similarity(length: int) -> float:
+        if length <= 4:
+            return 0.75
+        if length <= 8:
+            return 0.8
+        if length <= 14:
+            return 0.82
+        return 0.84
+
+    @staticmethod
+    def _levenshtein_distance(left: str, right: str) -> int:
+        if left == right:
+            return 0
+        if len(left) < len(right):
+            left, right = right, left
+
+        previous_row = list(range(len(right) + 1))
+        for left_index, left_char in enumerate(left, start=1):
+            current_row = [left_index]
+            for right_index, right_char in enumerate(right, start=1):
+                insertion = current_row[right_index - 1] + 1
+                deletion = previous_row[right_index] + 1
+                substitution = previous_row[right_index - 1] + (left_char != right_char)
+                current_row.append(min(insertion, deletion, substitution))
+            previous_row = current_row
+
+        return previous_row[-1]
 
     @staticmethod
     def _normalize_text(value: str) -> str:
-        value = value.lower().replace("ё", "е")
+        value = unicodedata.normalize("NFKC", value)
+        value = ZERO_WIDTH_RE.sub("", value)
+        value = value.casefold().replace("ё", "е")
         value = re.sub(r"[^a-zа-я0-9\s]", " ", value)
         value = re.sub(r"\s+", " ", value).strip()
         return value
