@@ -4,16 +4,26 @@
 
 Монорепозиторий из трёх независимых частей: REST-бэкенд, две Next.js-панели (web для игроков, admin для модераторов) и Flutter-приложение для мобильных платформ.
 
+## Публичные репозитории
+
+Исходники частей проекта и история коммитов на GitHub:
+
+| Часть      | Репозиторий                                                                                    | Коммиты                                                                                                                |
+| ---------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Frontend   | [github.com/34elo/Techarrow](https://github.com/34elo/Techarrow)                               | [история коммитов](https://github.com/34elo/Techarrow/commits/main)                                                    |
+| Backend    | [github.com/mathusha2023/StrelkaBack](https://github.com/mathusha2023/StrelkaBack)             | [история коммитов](https://github.com/mathusha2023/StrelkaBack/commits/main)                                             |
+| Мобильное  | [github.com/Street02krutoy/techarrow_2026_app](https://github.com/Street02krutoy/techarrow_2026_app) | [история коммитов](https://github.com/Street02krutoy/techarrow_2026_app/commits/main)                                   |
+
 ## Демо
 
 | Площадка                       | Ссылка                                  |
 | ------------------------------ | --------------------------------------- |
-| Пользовательская панель (web)  | <https://example.com>                   |
-| Панель модерации (admin)       | <https://admin.example.com>             |
+| Пользовательская панель (web)  | <https://tarr.ssrit.xyz>                |
+| Панель модерации (admin)       | <https://admin.tarr.ssrit.xyz>          |
 | Backend API + Swagger UI       | <https://api.example.com/docs>          |
-| Мобильное приложение (APK)     | <https://example.com/app.apk>           |
+| Мобильное приложение (APK)     | <https://disk.yandex.ru/d/hGIOuA_1WCC8Zg> |
 
-> Ссылки — заглушки. Подмените на реальные домены, как только задеплоите.
+> Для Backend API указана заглушка до появления публичного URL.
 
 ### Демо-аккаунты
 
