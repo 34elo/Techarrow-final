@@ -68,7 +68,7 @@ export function LandingPage() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <a href={DOWNLOAD_URL}>
+                <a href="https://disk.yandex.ru/d/hGIOuA_1WCC8Zg">
                   <Download />
                   {t("landing.download")}
                 </a>
