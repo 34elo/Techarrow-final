@@ -20,10 +20,8 @@
 | ------------------------------ | --------------------------------------- |
 | Пользовательская панель (web)  | <https://tarr.ssrit.xyz>                |
 | Панель модерации (admin)       | <https://admin.tarr.ssrit.xyz>          |
-| Backend API + Swagger UI       | <https://api.example.com/docs>          |
+| Backend API + Swagger UI       | <https://api.tarr.ssrit.xyz/docs>       |
 | Мобильное приложение (APK)     | <https://disk.yandex.ru/d/hGIOuA_1WCC8Zg> |
-
-> Для Backend API указана заглушка до появления публичного URL.
 
 ### Демо-аккаунты
 
