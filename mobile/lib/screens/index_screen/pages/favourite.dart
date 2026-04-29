@@ -155,6 +155,36 @@ class _FavouritePageState extends State<FavouritePage> {
     });
   }
 
+  Future<void> _refreshAllTabData() async {
+    setState(() {
+      _favoritesFuture = _loadFavorites();
+      _createdFuture = _loadCreated();
+      _draftsFuture = _loadDrafts();
+    });
+    await Future.wait([
+      _favoritesFuture,
+      _createdFuture,
+      _draftsFuture,
+    ]);
+  }
+
+  Widget _pullToRefreshEmpty(String message) {
+    return RefreshIndicator(
+      onRefresh: _refreshAllTabData,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Center(child: Text(message)),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -192,13 +222,14 @@ class _FavouritePageState extends State<FavouritePage> {
 
                         final quests = snapshot.data ?? <Quest>[];
                         if (quests.isEmpty) {
-                          return const Center(
-                            child: Text('Нет избранных квестов'),
-                          );
+                          return _pullToRefreshEmpty('Нет избранных квестов');
                         }
 
-                        return GridView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                        return RefreshIndicator(
+                          onRefresh: _refreshAllTabData,
+                          child: GridView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
@@ -222,6 +253,7 @@ class _FavouritePageState extends State<FavouritePage> {
                               },
                             );
                           },
+                        ),
                         );
                       },
                     )
@@ -239,11 +271,16 @@ class _FavouritePageState extends State<FavouritePage> {
                         final draftItems =
                             snapshot.data?.drafts ?? <QuestDraft>[];
                         if (remoteItems.isEmpty && draftItems.isEmpty) {
-                          return const Center(
-                            child: Text('Нет созданных квестов и черновиков'),
+                          return _pullToRefreshEmpty(
+                            'Нет созданных квестов и черновиков',
                           );
                         }
-                        return CustomScrollView(
+                        return RefreshIndicator(
+                          onRefresh: _refreshAllTabData,
+                          child: CustomScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(
+                              parent: BouncingScrollPhysics(),
+                            ),
                           slivers: [
                             if (draftItems.isNotEmpty)
                               SliverToBoxAdapter(
@@ -311,6 +348,7 @@ class _FavouritePageState extends State<FavouritePage> {
                               ),
                             ),
                           ],
+                        ),
                         );
                       },
                     ),

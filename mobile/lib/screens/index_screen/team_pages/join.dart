@@ -88,12 +88,24 @@ class _TeamJoinPageState extends State<TeamJoinPage>
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 20),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            try {
+              final res = await ApiService.instance.client.apiTeamsMeGet();
+              if (!mounted) return;
+              if (res.isSuccessful && res.body != null) {
+                widget.changePage(TeamPageStatus.info);
+              }
+            } catch (_) {}
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 20),
 
               // Title
               Text(
@@ -118,7 +130,7 @@ class _TeamJoinPageState extends State<TeamJoinPage>
                 decoration: InputDecoration(
                   hintText: "000000000000",
                   filled: true,
-                  fillColor: Colors.grey[300],
+                  fillColor: Theme.of(context).colorScheme.surfaceContainerLow,
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 18,
@@ -190,7 +202,9 @@ class _TeamJoinPageState extends State<TeamJoinPage>
                   ),
                 ),
               ),
-            ],
+                ],
+              ),
+            ),
           ),
         ),
       ),

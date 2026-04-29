@@ -15,11 +15,7 @@ Future<void> main() async {
   } catch (_) {
     dotenv.loadFromString(isOptional: true);
   }
-  runApp(
-    StreamAuthScope(
-      child: StreamQuestScope(child: const MainApp()),
-    ),
-  );
+  runApp(StreamAuthScope(child: StreamQuestScope(child: const MainApp())));
 }
 
 final _router = GoRouter(

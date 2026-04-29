@@ -18,6 +18,7 @@ class _IndexScreenState extends State<IndexScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
@@ -30,39 +31,60 @@ class _IndexScreenState extends State<IndexScreen> {
         ],
       ),
       bottomNavigationBar: SafeArea(
+        minimum: EdgeInsets.zero,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-          child: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (value) {
-              setState(() {
-                _currentIndex = value;
-                _refreshNonce[value]++;
-              });
-            },
-            type: BottomNavigationBarType.fixed,
-            items: [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined),
-                label: "Главная",
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: Material(
+            color: cs.surfaceContainerHigh,
+            elevation: 3,
+            shadowColor: cs.shadow.withValues(alpha: 0.18),
+            surfaceTintColor: Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+            clipBehavior: Clip.antiAlias,
+            child: BottomNavigationBar(
+              currentIndex: _currentIndex,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              type: BottomNavigationBarType.fixed,
+              selectedItemColor: cs.primary,
+              unselectedItemColor: cs.onSurfaceVariant,
+              selectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 11,
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.groups_outlined),
-                label: "Команда",
+              unselectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 11,
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.leaderboard_outlined),
-                label: "Рейтинг",
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.favorite_outline),
-                label: "Избранное",
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline),
-                label: "Профиль",
-              ),
-            ],
+              onTap: (value) {
+                setState(() {
+                  _currentIndex = value;
+                  _refreshNonce[value]++;
+                });
+              },
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home_outlined),
+                  label: "Главная",
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.groups_outlined),
+                  label: "Команда",
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.leaderboard_outlined),
+                  label: "Рейтинг",
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.library_books_outlined),
+                  label: "Моё",
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person_outline),
+                  label: "Профиль",
+                ),
+              ],
+            ),
           ),
         ),
       ),

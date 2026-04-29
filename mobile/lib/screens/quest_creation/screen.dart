@@ -181,14 +181,31 @@ class _QuestCreationScreenState extends State<QuestCreationScreen> {
   }
 
   Future<void> _pickCoverImage() async {
-    final picked = await _imagePicker.pickImage(source: ImageSource.gallery);
-    if (picked == null) return;
-    final bytes = await picked.readAsBytes();
-    final prepared = await prepareQuestCoverForUpload(bytes);
-    if (!mounted) return;
-    setState(() {
-      _coverImageBytes = prepared;
-    });
+    try {
+      final picked = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 2048,
+        maxHeight: 2048,
+        imageQuality: 90,
+      );
+      if (picked == null) return;
+      final bytes = await picked.readAsBytes();
+      final prepared = await prepareQuestCoverForUpload(bytes);
+      if (!mounted) return;
+      setState(() {
+        _coverImageBytes = prepared;
+      });
+    } catch (e, st) {
+      assert(() {
+        debugPrint('_pickCoverImage: $e\n$st');
+        return true;
+      }());
+      if (!mounted) return;
+      AppSnackBar.error(
+        context,
+        'Не удалось выбрать или обработать изображение',
+      );
+    }
   }
 
   void _removeCoverImage() {

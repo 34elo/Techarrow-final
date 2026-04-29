@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:techarrow_2026_app/screens/quest_creation/screen.dart';
 
-class QuestCreationStepFourPage extends StatelessWidget {
+class QuestCreationStepFourPage extends StatefulWidget {
   const QuestCreationStepFourPage({
     super.key,
     required this.changePage,
@@ -19,8 +22,17 @@ class QuestCreationStepFourPage extends StatelessWidget {
   final ValueChanged<int> onCheckpointTap;
   final ValueChanged<LatLng> onMapTap;
 
+  @override
+  State<QuestCreationStepFourPage> createState() =>
+      _QuestCreationStepFourPageState();
+}
+
+class _QuestCreationStepFourPageState extends State<QuestCreationStepFourPage> {
   static const LatLng _cityCenter = LatLng(56.3269, 44.0065);
+  static const double _pointPickZoom = 14;
   static const double _sheetContentHeight = 174;
+
+  late final MapController _mapController;
 
   double _sheetMaxSize(double availableHeight) {
     if (availableHeight <= 0) return 0.35;
@@ -28,36 +40,95 @@ class QuestCreationStepFourPage extends StatelessWidget {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _mapController = MapController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_centerMapOnUserIfPossible());
+    });
+  }
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _centerMapOnUserIfPossible() async {
+    if (!mounted) return;
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.deniedForever) return;
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission != LocationPermission.always &&
+          permission != LocationPermission.whileInUse) {
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+        ),
+      );
+      if (!mounted) return;
+      _mapController.move(
+        LatLng(position.latitude, position.longitude),
+        _pointPickZoom,
+      );
+    } catch (_) {}
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final bool isReady = checkpointsCount >= 3;
+    final bool isReady = widget.checkpointsCount >= 3;
 
     return Scaffold(
       body: Stack(
         children: [
           FlutterMap(
+            mapController: _mapController,
             options: MapOptions(
               initialCenter: _cityCenter,
               initialZoom: 12.5,
-              onTap: (_, point) => onMapTap(point),
+              interactionOptions: InteractionOptions(
+                flags: InteractiveFlag.all,
+                cursorKeyboardRotationOptions:
+                    CursorKeyboardRotationOptions.disabled(),
+              ),
+              onTap: (_, point) {
+                _mapController.move(point, _pointPickZoom);
+                widget.onMapTap(point);
+              },
             ),
             children: [
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.techarrow_2026_app',
               ),
-                MarkerLayer(
-                  markers: List.generate(checkpoints.length, (index) {
-                    final point = checkpoints[index];
-                    return Marker(
-                      point: LatLng(point.latitude, point.longitude),
-                      width: 44,
-                      height: 44,
-                      rotate: true,
-                      alignment: Alignment.bottomCenter,
-                      child: GestureDetector(
-                      onTap: () => onCheckpointTap(index),
+              MarkerLayer(
+                markers: List.generate(widget.checkpoints.length, (index) {
+                  final point = widget.checkpoints[index];
+                  return Marker(
+                    point: LatLng(point.latitude, point.longitude),
+                    width: 44,
+                    height: 44,
+                    rotate: true,
+                    alignment: Alignment.bottomCenter,
+                    child: GestureDetector(
+                      onTap: () {
+                        _mapController.move(
+                          LatLng(point.latitude, point.longitude),
+                          _pointPickZoom,
+                        );
+                        widget.onCheckpointTap(index);
+                      },
                       child: _NumberedCheckpointMarker(
                         number: index + 1,
                         color: colorScheme.error,
@@ -77,7 +148,7 @@ class QuestCreationStepFourPage extends StatelessWidget {
                     children: [
                       IconButton(
                         onPressed: () =>
-                            changePage(QuestCreationPageStatus.stepTwo),
+                            widget.changePage(QuestCreationPageStatus.stepTwo),
                         icon: Icon(
                           Icons.arrow_back,
                           color: colorScheme.onSurface,
@@ -148,7 +219,7 @@ class QuestCreationStepFourPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            'Добавлено $checkpointsCount чекпоинта',
+                            'Добавлено ${widget.checkpointsCount} чекпоинта',
                             style: textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w700,
                               color: colorScheme.onSurface,
@@ -178,7 +249,7 @@ class QuestCreationStepFourPage extends StatelessWidget {
                                 ),
                               ),
                               onPressed: isReady
-                                  ? () => changePage(
+                                  ? () => widget.changePage(
                                       QuestCreationPageStatus.stepFive,
                                     )
                                   : null,

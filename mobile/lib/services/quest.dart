@@ -338,38 +338,46 @@ class StreamQuest with WidgetsBindingObserver {
     try {
       final res = await ApiService.instance.client.apiQuestRunsActiveGet();
       final progress = res.body;
-      if (!res.isSuccessful || progress == null) {
+      if (res.isSuccessful && progress != null) {
+        String questName = 'Квест';
+        try {
+          final questRes = await ApiService.instance.client.apiQuestsQuestIdGet(
+            questId: progress.questId,
+          );
+          final quest = questRes.body;
+          if (quest != null && quest.title.isNotEmpty) {
+            questName = quest.title;
+          }
+        } catch (_) {
+          // keep fallback name
+        }
+
+        _activeQuestId = progress.questId;
+        _activeQuestName = questName;
+        _startedAt = progress.startedAt;
+        _progressController?.add(progress);
+        _emit(
+          StreamingQuestSession(
+            questId: progress.questId,
+            name: questName,
+            startedAt: progress.startedAt,
+            steps: 0,
+          ),
+        );
+        _startElapsedTicker();
         return;
       }
-
-      String questName = 'Квест';
-      try {
-        final questRes = await ApiService.instance.client.apiQuestsQuestIdGet(
-          questId: progress.questId,
-        );
-        final quest = questRes.body;
-        if (quest != null && quest.title.isNotEmpty) {
-          questName = quest.title;
-        }
-      } catch (_) {
-        // keep fallback name
-      }
-
-      _activeQuestId = progress.questId;
-      _activeQuestName = questName;
-      _startedAt = progress.startedAt;
-      _progressController?.add(progress);
-      _emit(
-        StreamingQuestSession(
-          questId: progress.questId,
-          name: questName,
-          startedAt: progress.startedAt,
-          steps: 0,
-        ),
-      );
-      _startElapsedTicker();
     } catch (_) {
-      // no active run or request failure: leave service in empty state
+      // fall through to team quest restore
+    }
+
+    try {
+      final teamRes = await ApiService.instance.client.apiTeamQuestRunsActiveGet();
+      if (teamRes.isSuccessful && teamRes.body != null) {
+        _teamProgressController?.add(teamRes.body);
+      }
+    } catch (_) {
+      // no active team run
     }
   }
 

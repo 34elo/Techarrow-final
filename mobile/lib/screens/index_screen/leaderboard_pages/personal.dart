@@ -31,6 +31,14 @@ class _PersonalLeaderboardPageState extends State<PersonalLeaderboardPage> {
     return body;
   }
 
+  Future<void> _reload() async {
+    final f = _load();
+    setState(() {
+      _future = f;
+    });
+    await f;
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<UserRatingPageResponse>(
@@ -97,6 +105,7 @@ class _PersonalLeaderboardPageState extends State<PersonalLeaderboardPage> {
           currentUserPoints: data.currentUser.points,
           currentPlaceLabel: 'Ваше место',
           entries: entries,
+          onRefresh: _reload,
         );
       },
     );

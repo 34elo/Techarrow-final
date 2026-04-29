@@ -24,6 +24,7 @@ class LeaderboardView extends StatelessWidget {
     required this.currentUserPoints,
     required this.currentPlaceLabel,
     this.body,
+    this.onRefresh,
   });
 
   final List<LeaderboardEntry> entries;
@@ -34,6 +35,7 @@ class LeaderboardView extends StatelessWidget {
   final int currentUserPoints;
   final String currentPlaceLabel;
   final Widget? body;
+  final Future<void> Function()? onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -64,19 +66,32 @@ class LeaderboardView extends StatelessWidget {
               if (currentUserPlace > 0) const SizedBox(height: 22),
               Expanded(
                 child: body ??
-                    ListView.separated(
-                      padding: const EdgeInsets.only(right: 2),
-                      itemCount: entries.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 20),
-                      itemBuilder: (context, index) {
-                        final entry = entries[index];
-                        return _LeaderboardRow(
-                          place: entry.place,
-                          title: entry.title,
-                          points: entry.points,
-                          withAvatar: withAvatar,
-                          isCurrentUser: false,
+                    Builder(
+                      builder: (context) {
+                        final list = ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.only(right: 2),
+                          itemCount: entries.length,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: 20),
+                          itemBuilder: (context, index) {
+                            final entry = entries[index];
+                            return _LeaderboardRow(
+                              place: entry.place,
+                              title: entry.title,
+                              points: entry.points,
+                              withAvatar: withAvatar,
+                              isCurrentUser: false,
+                            );
+                          },
                         );
+                        if (onRefresh != null) {
+                          return RefreshIndicator(
+                            onRefresh: onRefresh!,
+                            child: list,
+                          );
+                        }
+                        return list;
                       },
                     ),
               ),

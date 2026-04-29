@@ -239,33 +239,33 @@ Map<String, dynamic> _$QuestCreatorResponseToJson(
   'team_name': instance.teamName,
 };
 
-QuestDetailResponse _$QuestDetailResponseFromJson(Map<String, dynamic> json) =>
-    QuestDetailResponse(
-      id: (json['id'] as num).toInt(),
-      title: json['title'] as String,
-      description: json['description'] as String,
-      location: json['location'] as String,
-      difficulty: (json['difficulty'] as num).toInt(),
-      durationMinutes: (json['duration_minutes'] as num).toInt(),
-      rulesAndWarnings: json['rules_and_warnings'] as String?,
-      imageFileId: json['image_file_id'] as String?,
-      rejectionReason: json['rejection_reason'] as String?,
-      status: questStatusSchemaFromJson(json['status']),
-      latitude: (json['latitude'] as num).toDouble(),
-      longitude: (json['longitude'] as num).toDouble(),
-      creator: QuestCreatorResponse.fromJson(
-        json['creator'] as Map<String, dynamic>,
-      ),
-      isFavourite: json['is_favourite'] as bool? ?? false,
-      isCompleted: json['is_completed'] as bool? ?? false,
-      points:
-          (json['points'] as List<dynamic>?)
-              ?.map(
-                (e) => QuestPointResponse.fromJson(e as Map<String, dynamic>),
-              )
-              .toList() ??
-          [],
-    );
+QuestDetailResponse _$QuestDetailResponseFromJson(
+  Map<String, dynamic> json,
+) => QuestDetailResponse(
+  id: (json['id'] as num).toInt(),
+  title: json['title'] as String,
+  description: json['description'] as String,
+  location: json['location'] as String,
+  difficulty: (json['difficulty'] as num).toInt(),
+  durationMinutes: (json['duration_minutes'] as num).toInt(),
+  rulesAndWarnings: json['rules_and_warnings'] as String?,
+  imageFileId: json['image_file_id'] as String?,
+  rejectionReason: json['rejection_reason'] as String?,
+  status: questStatusSchemaFromJson(json['status']),
+  latitude: (json['latitude'] as num).toDouble(),
+  longitude: (json['longitude'] as num).toDouble(),
+  creator: QuestCreatorResponse.fromJson(
+    json['creator'] as Map<String, dynamic>,
+  ),
+  isFavourite: json['is_favourite'] as bool? ?? false,
+  isCompleted: json['is_completed'] as bool? ?? false,
+  bestCompletionSeconds: (json['best_completion_seconds'] as num?)?.toDouble(),
+  points:
+      (json['points'] as List<dynamic>?)
+          ?.map((e) => QuestPointResponse.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      [],
+);
 
 Map<String, dynamic> _$QuestDetailResponseToJson(
   QuestDetailResponse instance,
@@ -285,6 +285,7 @@ Map<String, dynamic> _$QuestDetailResponseToJson(
   'creator': instance.creator.toJson(),
   'is_favourite': instance.isFavourite,
   'is_completed': instance.isCompleted,
+  'best_completion_seconds': instance.bestCompletionSeconds,
   'points': instance.points.map((e) => e.toJson()).toList(),
 };
 
@@ -357,6 +358,8 @@ QuestResponse _$QuestResponseFromJson(Map<String, dynamic> json) =>
       ),
       isFavourite: json['is_favourite'] as bool? ?? false,
       isCompleted: json['is_completed'] as bool? ?? false,
+      bestCompletionSeconds: (json['best_completion_seconds'] as num?)
+          ?.toDouble(),
     );
 
 Map<String, dynamic> _$QuestResponseToJson(QuestResponse instance) =>
@@ -376,6 +379,7 @@ Map<String, dynamic> _$QuestResponseToJson(QuestResponse instance) =>
       'creator': instance.creator.toJson(),
       'is_favourite': instance.isFavourite,
       'is_completed': instance.isCompleted,
+      'best_completion_seconds': instance.bestCompletionSeconds,
     };
 
 QuestRunAnswerRequest _$QuestRunAnswerRequestFromJson(

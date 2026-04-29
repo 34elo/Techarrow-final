@@ -5,6 +5,15 @@ import 'package:techarrow_2026_app/services/auth.dart';
 
 enum _ScreenStates { regFirst, regLast, login }
 
+final RegExp _emailFormat = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+
+bool _isValidEmail(String raw) {
+  final s = raw.trim();
+  return s.isNotEmpty && _emailFormat.hasMatch(s);
+}
+
+bool _isValidPassword(String raw) => raw.length >= 8;
+
 class AuthorizationScreen extends StatefulWidget {
   const AuthorizationScreen({super.key});
 
@@ -25,8 +34,30 @@ class _AuthorizationScreenState extends State<AuthorizationScreen> {
 
   bool get _canSubmitRegistration =>
       _canProceedRegistrationFirst &&
-      _emailController.text.trim().isNotEmpty &&
-      _passwordController.text.isNotEmpty;
+      _isValidEmail(_emailController.text) &&
+      _isValidPassword(_passwordController.text);
+
+  bool get _canSubmitLogin =>
+      _isValidEmail(_emailController.text) &&
+      _isValidPassword(_passwordController.text);
+
+  String? get _emailFieldError {
+    final t = _emailController.text.trim();
+    if (t.isEmpty) return null;
+    if (!_isValidEmail(_emailController.text)) {
+      return 'Введите корректный адрес почты';
+    }
+    return null;
+  }
+
+  String? get _passwordFieldError {
+    final t = _passwordController.text;
+    if (t.isEmpty) return null;
+    if (!_isValidPassword(t)) {
+      return 'Пароль должен содержать не менее 8 символов';
+    }
+    return null;
+  }
 
   @override
   void dispose() {
@@ -41,7 +72,7 @@ class _AuthorizationScreenState extends State<AuthorizationScreen> {
 
     await StreamAuthScope.of(
       context,
-    ).signIn(_emailController.text, _passwordController.text);
+    ).signIn(_emailController.text.trim(), _passwordController.text);
 
     if (!mounted) return;
 
@@ -54,7 +85,7 @@ class _AuthorizationScreenState extends State<AuthorizationScreen> {
     setState(() {});
 
     await StreamAuthScope.of(context).signOn(
-      _emailController.text,
+      _emailController.text.trim(),
       _passwordController.text,
       _nicknameController.text,
       birthdate!,
@@ -253,6 +284,9 @@ class _AuthorizationScreenState extends State<AuthorizationScreen> {
         label: "Почта",
         controller: _emailController,
         hint: "Введите почту",
+        keyboardType: TextInputType.emailAddress,
+        autocorrect: false,
+        errorText: _emailFieldError,
       ),
       const SizedBox(height: 24),
       _buildField(
@@ -266,6 +300,7 @@ class _AuthorizationScreenState extends State<AuthorizationScreen> {
           });
         },
         hint: "Введите пароль",
+        errorText: _passwordFieldError,
       ),
 
       const SizedBox(height: 48),
@@ -312,9 +347,12 @@ class _AuthorizationScreenState extends State<AuthorizationScreen> {
       const SizedBox(height: 24),
       _buildField(
         context,
-        label: "Логин",
+        label: "Почта",
         controller: _emailController,
-        hint: "Введите логин",
+        hint: "Введите почту",
+        keyboardType: TextInputType.emailAddress,
+        autocorrect: false,
+        errorText: _emailFieldError,
       ),
       const SizedBox(height: 24),
       _buildField(
@@ -328,6 +366,7 @@ class _AuthorizationScreenState extends State<AuthorizationScreen> {
           });
         },
         hint: "Введите пароль",
+        errorText: _passwordFieldError,
       ),
 
       const SizedBox(height: 48),
@@ -336,7 +375,7 @@ class _AuthorizationScreenState extends State<AuthorizationScreen> {
           Expanded(
             child: ElevatedButton(
               style: _primaryButtonStyle(context),
-              onPressed: _signIn,
+              onPressed: _canSubmitLogin ? _signIn : null,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text("Войти"),
@@ -376,36 +415,67 @@ class _AuthorizationScreenState extends State<AuthorizationScreen> {
     void Function(bool value)? onHide,
     required String hint,
     bool? hidden,
+    TextInputType keyboardType = TextInputType.text,
+    bool autocorrect = true,
+    String? errorText,
   }) {
+    final borderRadius = BorderRadius.circular(14);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: Theme.of(context).textTheme.labelLarge),
         const SizedBox(height: 12),
-        ClipRRect(
-          borderRadius: BorderRadiusGeometry.all(Radius.circular(14)),
-          child: TextField(
-            controller: controller,
-            focusNode: focusNode,
-            obscureText: hidden ?? false,
-            textAlignVertical: TextAlignVertical.center,
-            onChanged: (_) => setState(() {}),
-
-            decoration: InputDecoration(
-              hint: Text(hint),
-              filled: true,
-              border: InputBorder.none,
-              fillColor: Theme.of(context).colorScheme.surfaceContainer,
-              suffixIcon: onHide != null && hidden != null
-                  ? GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      child: Icon(
-                        !hidden ? Icons.visibility : Icons.visibility_off,
-                      ),
-                      onTap: () => onHide(!hidden),
-                    )
-                  : null,
+        TextField(
+          controller: controller,
+          focusNode: focusNode,
+          obscureText: hidden ?? false,
+          keyboardType: keyboardType,
+          autocorrect: autocorrect,
+          textAlignVertical: TextAlignVertical.center,
+          onChanged: (_) => setState(() {}),
+          decoration: InputDecoration(
+            hintText: hint,
+            filled: true,
+            fillColor: Theme.of(context).colorScheme.surfaceContainer,
+            errorText: errorText,
+            border: OutlineInputBorder(
+              borderRadius: borderRadius,
+              borderSide: BorderSide.none,
             ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: borderRadius,
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: borderRadius,
+              borderSide: BorderSide.none,
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: borderRadius,
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: borderRadius,
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.error,
+                width: 1.5,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            suffixIcon: onHide != null && hidden != null
+                ? GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    child: Icon(
+                      !hidden ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onTap: () => onHide(!hidden),
+                  )
+                : null,
           ),
         ),
       ],

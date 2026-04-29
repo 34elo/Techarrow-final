@@ -6,6 +6,7 @@ import 'package:techarrow_2026_app/gen/swagger.swagger.dart';
 import 'package:techarrow_2026_app/models/quest.dart';
 import 'package:techarrow_2026_app/screens/current_quest_screen/screen.dart';
 import 'package:techarrow_2026_app/screens/quest_creation/screen.dart';
+import 'package:techarrow_2026_app/screens/quest_data/team_waiting_room_sheet.dart';
 import 'package:techarrow_2026_app/services/api.dart';
 import 'package:techarrow_2026_app/services/quest.dart';
 import 'package:techarrow_2026_app/widgets/app_snackbar.dart';
@@ -100,6 +101,43 @@ class _MainPageState extends State<MainPage> {
       _quests.clear();
     });
     await _loadMore();
+  }
+
+  Future<void> _pullRefreshQuests() async {
+    final f = _activeFilters;
+    final hasNear = f?.nearLatitude != null && f?.nearLongitude != null;
+    try {
+      final response = await ApiService.instance.getQuests(
+        limit: _pageSize,
+        offset: 0,
+        minDurationMinutes: f?.minDurationMinutes,
+        maxDurationMinutes: f?.maxDurationMinutes,
+        difficulties: f?.difficulties,
+        nearLatitude: hasNear ? f!.nearLatitude : null,
+        nearLongitude: hasNear ? f!.nearLongitude : null,
+        search: _searchController.text.trim().isEmpty
+            ? null
+            : _searchController.text.trim(),
+      );
+      if (!mounted) return;
+      final items = response.items.map(_mapQuest).toList();
+      setState(() {
+        _total = response.total;
+        _offset = response.offset + response.items.length;
+        _quests
+          ..clear()
+          ..addAll(items);
+        _isInitialLoading = false;
+        _isLoadingMore = false;
+        _loadError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loadError = e.toString();
+        _isLoadingMore = false;
+      });
+    }
   }
 
   bool get _hasMore => _quests.length < _total;
@@ -226,9 +264,12 @@ class _MainPageState extends State<MainPage> {
         preferredSize: Size.fromHeight(90),
         child: SafeArea(child: buildSearchBar()),
       ),
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
+      body: RefreshIndicator(
+        onRefresh: _pullRefreshQuests,
+        child: CustomScrollView(
+          controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
           const SliverToBoxAdapter(child: SizedBox(height: 12)),
           if (StreamQuestScope.of(context).activeSession != null ||
               StreamQuestScope.of(context).activeTeamRunProgress != null)
@@ -329,7 +370,8 @@ class _MainPageState extends State<MainPage> {
               ),
             ),
           ],
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -398,7 +440,12 @@ class _MainPageState extends State<MainPage> {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () {
+      onTap: () async {
+        if (isTeam &&
+            teamProgress.status.value != 'in_progress') {
+          await openTeamQuestWaitingRoom(context, teamProgress.questId);
+          return;
+        }
         Navigator.of(
           context,
         ).push(MaterialPageRoute(builder: (_) => const CurrentQuestScreen()));
@@ -443,7 +490,13 @@ class _MainPageState extends State<MainPage> {
                     Text(
                       "Готово чекпоинтов: ${teamProgress.completedCheckpoints}/${teamProgress.totalCheckpoints}",
                     ),
-                    Text("Количество шагов: ${quest?.steps ?? 0}"),
+                    Text(
+                      'Квест #${teamProgress.questId} · в команде отвечайте на любые точки в любом порядке',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[700],
+                      ),
+                    ),
                   ] else ...[
                     Text("Количество шагов: ${quest?.steps ?? 0}"),
                     Text(

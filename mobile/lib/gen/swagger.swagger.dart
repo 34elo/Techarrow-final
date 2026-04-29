@@ -577,6 +577,7 @@ abstract class Swagger extends ChopperService {
   ///@param min_duration_minutes
   ///@param max_duration_minutes
   ///@param difficulties
+  ///@param search Поиск по названию квеста с нормализацией и неточным совпадением
   ///@param city
   ///@param near_latitude Широта точки; вместе с near_longitude задаёт фильтр по радиусу 1 км (PostGIS)
   ///@param near_longitude Долгота точки; вместе с near_latitude задаёт фильтр по радиусу 1 км (PostGIS)
@@ -586,6 +587,7 @@ abstract class Swagger extends ChopperService {
     int? minDurationMinutes,
     int? maxDurationMinutes,
     List? difficulties,
+    String? search,
     String? city,
     num? nearLatitude,
     num? nearLongitude,
@@ -601,6 +603,7 @@ abstract class Swagger extends ChopperService {
       minDurationMinutes: minDurationMinutes,
       maxDurationMinutes: maxDurationMinutes,
       difficulties: difficulties,
+      search: search,
       city: city,
       nearLatitude: nearLatitude,
       nearLongitude: nearLongitude,
@@ -613,6 +616,7 @@ abstract class Swagger extends ChopperService {
   ///@param min_duration_minutes
   ///@param max_duration_minutes
   ///@param difficulties
+  ///@param search Поиск по названию квеста с нормализацией и неточным совпадением
   ///@param city
   ///@param near_latitude Широта точки; вместе с near_longitude задаёт фильтр по радиусу 1 км (PostGIS)
   ///@param near_longitude Долгота точки; вместе с near_latitude задаёт фильтр по радиусу 1 км (PostGIS)
@@ -623,6 +627,7 @@ abstract class Swagger extends ChopperService {
     @Query('min_duration_minutes') int? minDurationMinutes,
     @Query('max_duration_minutes') int? maxDurationMinutes,
     @Query('difficulties') List? difficulties,
+    @Query('search') String? search,
     @Query('city') String? city,
     @Query('near_latitude') num? nearLatitude,
     @Query('near_longitude') num? nearLongitude,
@@ -645,6 +650,7 @@ abstract class Swagger extends ChopperService {
   ///@param min_duration_minutes
   ///@param max_duration_minutes
   ///@param difficulties
+  ///@param search Поиск по названию квеста с нормализацией и неточным совпадением
   ///@param city
   ///@param near_latitude Широта точки; вместе с near_longitude задаёт фильтр по радиусу 1 км (PostGIS)
   ///@param near_longitude Долгота точки; вместе с near_latitude задаёт фильтр по радиусу 1 км (PostGIS)
@@ -654,6 +660,7 @@ abstract class Swagger extends ChopperService {
     int? minDurationMinutes,
     int? maxDurationMinutes,
     List? difficulties,
+    String? search,
     String? city,
     num? nearLatitude,
     num? nearLongitude,
@@ -669,6 +676,7 @@ abstract class Swagger extends ChopperService {
       minDurationMinutes: minDurationMinutes,
       maxDurationMinutes: maxDurationMinutes,
       difficulties: difficulties,
+      search: search,
       city: city,
       nearLatitude: nearLatitude,
       nearLongitude: nearLongitude,
@@ -681,6 +689,7 @@ abstract class Swagger extends ChopperService {
   ///@param min_duration_minutes
   ///@param max_duration_minutes
   ///@param difficulties
+  ///@param search Поиск по названию квеста с нормализацией и неточным совпадением
   ///@param city
   ///@param near_latitude Широта точки; вместе с near_longitude задаёт фильтр по радиусу 1 км (PostGIS)
   ///@param near_longitude Долгота точки; вместе с near_latitude задаёт фильтр по радиусу 1 км (PostGIS)
@@ -691,6 +700,7 @@ abstract class Swagger extends ChopperService {
     @Query('min_duration_minutes') int? minDurationMinutes,
     @Query('max_duration_minutes') int? maxDurationMinutes,
     @Query('difficulties') List? difficulties,
+    @Query('search') String? search,
     @Query('city') String? city,
     @Query('near_latitude') num? nearLatitude,
     @Query('near_longitude') num? nearLongitude,
@@ -713,6 +723,7 @@ abstract class Swagger extends ChopperService {
   ///@param min_duration_minutes
   ///@param max_duration_minutes
   ///@param difficulties
+  ///@param search Поиск по названию квеста с нормализацией и неточным совпадением
   ///@param city
   ///@param near_latitude Широта точки; вместе с near_longitude задаёт фильтр по радиусу 1 км (PostGIS)
   ///@param near_longitude Долгота точки; вместе с near_latitude задаёт фильтр по радиусу 1 км (PostGIS)
@@ -722,6 +733,7 @@ abstract class Swagger extends ChopperService {
     int? minDurationMinutes,
     int? maxDurationMinutes,
     List? difficulties,
+    String? search,
     String? city,
     num? nearLatitude,
     num? nearLongitude,
@@ -737,6 +749,7 @@ abstract class Swagger extends ChopperService {
       minDurationMinutes: minDurationMinutes,
       maxDurationMinutes: maxDurationMinutes,
       difficulties: difficulties,
+      search: search,
       city: city,
       nearLatitude: nearLatitude,
       nearLongitude: nearLongitude,
@@ -749,6 +762,7 @@ abstract class Swagger extends ChopperService {
   ///@param min_duration_minutes
   ///@param max_duration_minutes
   ///@param difficulties
+  ///@param search Поиск по названию квеста с нормализацией и неточным совпадением
   ///@param city
   ///@param near_latitude Широта точки; вместе с near_longitude задаёт фильтр по радиусу 1 км (PostGIS)
   ///@param near_longitude Долгота точки; вместе с near_latitude задаёт фильтр по радиусу 1 км (PostGIS)
@@ -759,6 +773,7 @@ abstract class Swagger extends ChopperService {
     @Query('min_duration_minutes') int? minDurationMinutes,
     @Query('max_duration_minutes') int? maxDurationMinutes,
     @Query('difficulties') List? difficulties,
+    @Query('search') String? search,
     @Query('city') String? city,
     @Query('near_latitude') num? nearLatitude,
     @Query('near_longitude') num? nearLongitude,
@@ -1286,6 +1301,7 @@ abstract class Swagger extends ChopperService {
   ///@param min_duration_minutes
   ///@param max_duration_minutes
   ///@param difficulties
+  ///@param search Поиск по названию квеста с нормализацией и неточным совпадением
   ///@param city
   ///@param near_latitude Широта точки; вместе с near_longitude задаёт фильтр по радиусу 1 км (PostGIS)
   ///@param near_longitude Долгота точки; вместе с near_latitude задаёт фильтр по радиусу 1 км (PostGIS)
@@ -1295,6 +1311,7 @@ abstract class Swagger extends ChopperService {
     int? minDurationMinutes,
     int? maxDurationMinutes,
     List? difficulties,
+    String? search,
     String? city,
     num? nearLatitude,
     num? nearLongitude,
@@ -1310,6 +1327,7 @@ abstract class Swagger extends ChopperService {
       minDurationMinutes: minDurationMinutes,
       maxDurationMinutes: maxDurationMinutes,
       difficulties: difficulties,
+      search: search,
       city: city,
       nearLatitude: nearLatitude,
       nearLongitude: nearLongitude,
@@ -1322,6 +1340,7 @@ abstract class Swagger extends ChopperService {
   ///@param min_duration_minutes
   ///@param max_duration_minutes
   ///@param difficulties
+  ///@param search Поиск по названию квеста с нормализацией и неточным совпадением
   ///@param city
   ///@param near_latitude Широта точки; вместе с near_longitude задаёт фильтр по радиусу 1 км (PostGIS)
   ///@param near_longitude Долгота точки; вместе с near_latitude задаёт фильтр по радиусу 1 км (PostGIS)
@@ -1332,6 +1351,7 @@ abstract class Swagger extends ChopperService {
     @Query('min_duration_minutes') int? minDurationMinutes,
     @Query('max_duration_minutes') int? maxDurationMinutes,
     @Query('difficulties') List? difficulties,
+    @Query('search') String? search,
     @Query('city') String? city,
     @Query('near_latitude') num? nearLatitude,
     @Query('near_longitude') num? nearLongitude,
@@ -2592,6 +2612,7 @@ class QuestDetailResponse {
     required this.creator,
     this.isFavourite,
     this.isCompleted,
+    this.bestCompletionSeconds,
     required this.points,
   });
 
@@ -2635,6 +2656,8 @@ class QuestDetailResponse {
   final bool? isFavourite;
   @JsonKey(name: 'is_completed', defaultValue: false)
   final bool? isCompleted;
+  @JsonKey(name: 'best_completion_seconds')
+  final double? bestCompletionSeconds;
   @JsonKey(name: 'points', defaultValue: <QuestPointResponse>[])
   final List<QuestPointResponse> points;
   static const fromJsonFactory = _$QuestDetailResponseFromJson;
@@ -2709,6 +2732,11 @@ class QuestDetailResponse {
                   other.isCompleted,
                   isCompleted,
                 )) &&
+            (identical(other.bestCompletionSeconds, bestCompletionSeconds) ||
+                const DeepCollectionEquality().equals(
+                  other.bestCompletionSeconds,
+                  bestCompletionSeconds,
+                )) &&
             (identical(other.points, points) ||
                 const DeepCollectionEquality().equals(other.points, points)));
   }
@@ -2733,6 +2761,7 @@ class QuestDetailResponse {
       const DeepCollectionEquality().hash(creator) ^
       const DeepCollectionEquality().hash(isFavourite) ^
       const DeepCollectionEquality().hash(isCompleted) ^
+      const DeepCollectionEquality().hash(bestCompletionSeconds) ^
       const DeepCollectionEquality().hash(points) ^
       runtimeType.hashCode;
 }
@@ -2754,6 +2783,7 @@ extension $QuestDetailResponseExtension on QuestDetailResponse {
     QuestCreatorResponse? creator,
     bool? isFavourite,
     bool? isCompleted,
+    double? bestCompletionSeconds,
     List<QuestPointResponse>? points,
   }) {
     return QuestDetailResponse(
@@ -2772,6 +2802,8 @@ extension $QuestDetailResponseExtension on QuestDetailResponse {
       creator: creator ?? this.creator,
       isFavourite: isFavourite ?? this.isFavourite,
       isCompleted: isCompleted ?? this.isCompleted,
+      bestCompletionSeconds:
+          bestCompletionSeconds ?? this.bestCompletionSeconds,
       points: points ?? this.points,
     );
   }
@@ -2792,6 +2824,7 @@ extension $QuestDetailResponseExtension on QuestDetailResponse {
     Wrapped<QuestCreatorResponse>? creator,
     Wrapped<bool?>? isFavourite,
     Wrapped<bool?>? isCompleted,
+    Wrapped<double?>? bestCompletionSeconds,
     Wrapped<List<QuestPointResponse>>? points,
   }) {
     return QuestDetailResponse(
@@ -2816,6 +2849,9 @@ extension $QuestDetailResponseExtension on QuestDetailResponse {
       creator: (creator != null ? creator.value : this.creator),
       isFavourite: (isFavourite != null ? isFavourite.value : this.isFavourite),
       isCompleted: (isCompleted != null ? isCompleted.value : this.isCompleted),
+      bestCompletionSeconds: (bestCompletionSeconds != null
+          ? bestCompletionSeconds.value
+          : this.bestCompletionSeconds),
       points: (points != null ? points.value : this.points),
     );
   }
@@ -3097,6 +3133,7 @@ class QuestResponse {
     required this.creator,
     this.isFavourite,
     this.isCompleted,
+    this.bestCompletionSeconds,
   });
 
   factory QuestResponse.fromJson(Map<String, dynamic> json) =>
@@ -3139,6 +3176,8 @@ class QuestResponse {
   final bool? isFavourite;
   @JsonKey(name: 'is_completed', defaultValue: false)
   final bool? isCompleted;
+  @JsonKey(name: 'best_completion_seconds')
+  final double? bestCompletionSeconds;
   static const fromJsonFactory = _$QuestResponseFromJson;
 
   @override
@@ -3210,6 +3249,11 @@ class QuestResponse {
                 const DeepCollectionEquality().equals(
                   other.isCompleted,
                   isCompleted,
+                )) &&
+            (identical(other.bestCompletionSeconds, bestCompletionSeconds) ||
+                const DeepCollectionEquality().equals(
+                  other.bestCompletionSeconds,
+                  bestCompletionSeconds,
                 )));
   }
 
@@ -3233,6 +3277,7 @@ class QuestResponse {
       const DeepCollectionEquality().hash(creator) ^
       const DeepCollectionEquality().hash(isFavourite) ^
       const DeepCollectionEquality().hash(isCompleted) ^
+      const DeepCollectionEquality().hash(bestCompletionSeconds) ^
       runtimeType.hashCode;
 }
 
@@ -3253,6 +3298,7 @@ extension $QuestResponseExtension on QuestResponse {
     QuestCreatorResponse? creator,
     bool? isFavourite,
     bool? isCompleted,
+    double? bestCompletionSeconds,
   }) {
     return QuestResponse(
       id: id ?? this.id,
@@ -3270,6 +3316,8 @@ extension $QuestResponseExtension on QuestResponse {
       creator: creator ?? this.creator,
       isFavourite: isFavourite ?? this.isFavourite,
       isCompleted: isCompleted ?? this.isCompleted,
+      bestCompletionSeconds:
+          bestCompletionSeconds ?? this.bestCompletionSeconds,
     );
   }
 
@@ -3289,6 +3337,7 @@ extension $QuestResponseExtension on QuestResponse {
     Wrapped<QuestCreatorResponse>? creator,
     Wrapped<bool?>? isFavourite,
     Wrapped<bool?>? isCompleted,
+    Wrapped<double?>? bestCompletionSeconds,
   }) {
     return QuestResponse(
       id: (id != null ? id.value : this.id),
@@ -3312,6 +3361,9 @@ extension $QuestResponseExtension on QuestResponse {
       creator: (creator != null ? creator.value : this.creator),
       isFavourite: (isFavourite != null ? isFavourite.value : this.isFavourite),
       isCompleted: (isCompleted != null ? isCompleted.value : this.isCompleted),
+      bestCompletionSeconds: (bestCompletionSeconds != null
+          ? bestCompletionSeconds.value
+          : this.bestCompletionSeconds),
     );
   }
 }

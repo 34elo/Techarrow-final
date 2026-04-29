@@ -280,3 +280,58 @@ class _TeamWaitingRoomSheetState extends State<TeamWaitingRoomSheet> {
     );
   }
 }
+
+const _fallbackQuestListImage =
+    'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcQRZRfRJNfPiR_PG_fa6JHQw3AEYUt0c-oCRwt07bUQRZfdGHhK';
+
+/// Loads quest by id and opens [TeamWaitingRoomSheet] (готовность / отсчёт до старта).
+Future<void> openTeamQuestWaitingRoom(BuildContext context, int questId) async {
+  try {
+    final res =
+        await ApiService.instance.client.apiQuestsQuestIdGet(questId: questId);
+    if (!context.mounted) return;
+    if (!res.isSuccessful || res.body == null) {
+      AppSnackBar.serverError(
+        context,
+        fallback: 'Не удалось загрузить квест',
+        response: res,
+      );
+      return;
+    }
+    final item = res.body!;
+    final quest = Quest(
+      id: item.id,
+      isFavorite: item.isFavourite ?? false,
+      isCompleted: item.isCompleted ?? false,
+      name: item.title,
+      duration: '${item.durationMinutes} мин',
+      area: item.location,
+      difficulty: item.difficulty.toString(),
+      imageSrc: item.imageFileId != null
+          ? '${ApiService.baseUrl.toString()}/api/file/${item.imageFileId}'
+          : _fallbackQuestListImage,
+      status: item.status.value,
+    );
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => TeamWaitingRoomSheet(
+        questId: quest.id,
+        questTitle: quest.name,
+        quest: quest,
+      ),
+    );
+  } catch (e) {
+    if (context.mounted) {
+      AppSnackBar.serverError(
+        context,
+        fallback: 'Не удалось открыть ожидание команды',
+        error: e,
+      );
+    }
+  }
+}

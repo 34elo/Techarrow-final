@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:techarrow_2026_app/screens/quest_creation/screen.dart';
 
@@ -39,8 +42,10 @@ class QuestCreationStepThreePage extends StatefulWidget {
 class _QuestCreationStepThreePageState
     extends State<QuestCreationStepThreePage> {
   static const LatLng _cityCenter = LatLng(56.3269, 44.0065);
+  static const double _pointPickZoom = 14;
   static const double _sheetContentHeight = 600;
   static const int _minTaskLength = 20;
+  late final MapController _mapController;
   bool _didDismissSheet = false;
 
   bool get _canSave =>
@@ -59,19 +64,62 @@ class _QuestCreationStepThreePageState
   @override
   void initState() {
     super.initState();
+    _mapController = MapController();
     widget.pointTitleController.addListener(_refresh);
     widget.taskController.addListener(_refresh);
     widget.codeWordController.addListener(_refresh);
     widget.pointRulesController.addListener(_refresh);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_setupInitialCamera());
+    });
   }
 
   @override
   void dispose() {
+    _mapController.dispose();
     widget.pointTitleController.removeListener(_refresh);
     widget.taskController.removeListener(_refresh);
     widget.codeWordController.removeListener(_refresh);
     widget.pointRulesController.removeListener(_refresh);
     super.dispose();
+  }
+
+  Future<void> _setupInitialCamera() async {
+    if (!mounted) return;
+    if (widget.selectedPoint != null) {
+      _mapController.move(widget.selectedPoint!, _pointPickZoom);
+      return;
+    }
+    await _centerMapOnUserIfPossible();
+  }
+
+  Future<void> _centerMapOnUserIfPossible() async {
+    if (!mounted) return;
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.deniedForever) return;
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission != LocationPermission.always &&
+          permission != LocationPermission.whileInUse) {
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+        ),
+      );
+      if (!mounted) return;
+      _mapController.move(
+        LatLng(position.latitude, position.longitude),
+        _pointPickZoom,
+      );
+    } catch (_) {}
   }
 
   void _refresh() {
@@ -135,11 +183,19 @@ class _QuestCreationStepThreePageState
         alignment: AlignmentGeometry.bottomCenter,
         children: [
           FlutterMap(
+            mapController: _mapController,
             options: MapOptions(
-              initialCenter: _cityCenter,
-              initialZoom: 12.5,
+              initialCenter: widget.selectedPoint ?? _cityCenter,
+              initialZoom:
+                  widget.selectedPoint != null ? _pointPickZoom : 12.5,
+              interactionOptions: InteractionOptions(
+                flags: InteractiveFlag.all,
+                cursorKeyboardRotationOptions:
+                    CursorKeyboardRotationOptions.disabled(),
+              ),
               onTap: (_, point) {
                 widget.onPointChanged(point);
+                _mapController.move(point, _pointPickZoom);
               },
             ),
             children: [

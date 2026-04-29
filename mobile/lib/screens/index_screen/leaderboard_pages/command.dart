@@ -31,6 +31,14 @@ class _CommandLeaderboardPageState extends State<CommandLeaderboardPage> {
     return body;
   }
 
+  Future<void> _reload() async {
+    final f = _load();
+    setState(() {
+      _future = f;
+    });
+    await f;
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<TeamRatingPageResponse>(
@@ -97,6 +105,7 @@ class _CommandLeaderboardPageState extends State<CommandLeaderboardPage> {
           currentUserPoints: data.currentUserTeam?.points ?? 0,
           currentPlaceLabel: 'Место вашей команды',
           entries: entries,
+          onRefresh: _reload,
         );
       },
     );

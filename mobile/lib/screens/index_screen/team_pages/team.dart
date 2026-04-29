@@ -15,8 +15,6 @@ class TeamInfoPage extends StatefulWidget {
 }
 
 class _TeamInfoPageState extends State<TeamInfoPage> {
-  late String _teamId;
-  late String _teamName;
   late Future<TeamResponse?> _teamFuture;
 
   @override
@@ -35,31 +33,39 @@ class _TeamInfoPageState extends State<TeamInfoPage> {
     return null;
   }
 
-  void _openTeamQrPage() {
+  void _openTeamQrPage(String code, String name) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => TeamQrPage(teamId: _teamId, teamName: _teamName),
+        builder: (_) => TeamQrPage(teamId: code, teamName: name),
       ),
     );
   }
 
-  Future<void> onLogout(BuildContext context) async {
+  Future<void> onLogout() async {
     final team = await _loadTeam();
-    if (team == null) return;
+    if (!mounted || team == null) return;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
+        final cs = Theme.of(dialogContext).colorScheme;
         return AlertDialog(
-          title: Text('Вы хотите выйти из ${team.name}?'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text('Выйти из «${team.name}»?'),
+          content: Text(
+            'Вы сможете снова присоединиться по коду команды.',
+            style: TextStyle(color: cs.onSurfaceVariant),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Нет'),
+              child: const Text('Остаться'),
             ),
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Да'),
+              child: const Text('Выйти'),
             ),
           ],
         );
@@ -76,130 +82,339 @@ class _TeamInfoPageState extends State<TeamInfoPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
     return FutureBuilder<TeamResponse?>(
       future: _teamFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+          return Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(
+                color: cs.primary,
+              ),
+            ),
+          );
         }
         final team = snapshot.data;
         if (team == null) {
-          return const Center(child: Text('Команда не найдена'));
-        }
-        _teamId = team.code;
-        _teamName = team.name;
-        final members = team.members;
-
-        return Scaffold(
-          floatingActionButton: Container(
-            height: 72,
-            width: 72,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.secondaryContainer,
-              borderRadius: BorderRadius.circular(22),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: IconButton(
-              onPressed: _openTeamQrPage,
-              icon: const Icon(Icons.qr_code_2_rounded, size: 30),
-            ),
-          ),
-          body: SafeArea(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          return Scaffold(
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _teamName,
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 4),
-                          InkWell(
-                            onTap: () {
-                              Clipboard.setData(ClipboardData(text: _teamId));
-                              AppSnackBar.success(context, 'Скопировано');
-                            },
-                            child: Text(
-                              'ID: $_teamId',
-                              style: const TextStyle(
-                                color: Colors.black54,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    Icon(
+                      Icons.groups_outlined,
+                      size: 56,
+                      color: cs.outline,
                     ),
-                    IconButton(
-                      onPressed: () {
-                        onLogout(context);
-                      },
-                      icon: const Icon(
-                        Icons.logout,
-                        color: Color(0xFFB7352B),
-                        size: 34,
+                    const SizedBox(height: 16),
+                    Text(
+                      'Команда не найдена',
+                      style: tt.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
-                const SizedBox(height: 18),
-                Text(
-                  team.description,
-                  style: const TextStyle(
-                    height: 1.2,
-                    color: Colors.black54,
-                    fontWeight: FontWeight.w500,
+              ),
+            ),
+          );
+        }
+
+        final members = team.members;
+
+        return Scaffold(
+          backgroundColor: cs.surface,
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => _openTeamQrPage(team.code, team.name),
+            icon: const Icon(Icons.qr_code_2_rounded),
+            label: const Text('QR-код'),
+            elevation: 2,
+            backgroundColor: cs.primaryContainer,
+            foregroundColor: cs.onPrimaryContainer,
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+          body: SafeArea(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                setState(() {
+                  _teamFuture = _loadTeam();
+                });
+                await _teamFuture;
+              },
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                slivers: [
+                SliverToBoxAdapter(child: SizedBox(height: 8)),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverToBoxAdapter(
+                    child: _TeamHeroCard(
+                      name: team.name,
+                      code: team.code,
+                      description: team.description,
+                      memberCount: members.length,
+                      onCopyCode: () {
+                        Clipboard.setData(ClipboardData(text: team.code));
+                        AppSnackBar.success(context, 'Код скопирован');
+                      },
+                      onLeave: onLogout,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 28),
-                ...members.map(
-                  (member) => Padding(
-                    padding: const EdgeInsets.only(bottom: 18),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
                     child: Row(
                       children: [
-                        const CircleAvatar(
-                          radius: 26,
-                          backgroundColor: Color(0xFFD5DDF5),
-                          child: Icon(
-                            Icons.person_outline_rounded,
-                            color: Color(0xFF42527D),
-                            size: 34,
+                        Icon(Icons.people_alt_rounded, size: 22, color: cs.primary),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Участники',
+                          style: tt.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.2,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              member.username,
-                              style: const TextStyle(
-                                color: Color(0xFF415584),
-                                fontWeight: FontWeight.w500,
-                              ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: cs.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                          child: Text(
+                            '${members.length} / 6',
+                            style: tt.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: cs.onSurfaceVariant,
                             ),
-                          ],
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverList.separated(
+                    itemCount: members.length,
+                    separatorBuilder: (context, _) => const SizedBox(height: 10),
+                    itemBuilder: (context, index) {
+                      final member = members[index];
+                      return Material(
+                        color: cs.surfaceContainerLow,
+                        elevation: 0,
+                        borderRadius: BorderRadius.circular(20),
+                        clipBehavior: Clip.antiAlias,
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
+                          leading: CircleAvatar(
+                            backgroundColor: cs.primaryContainer,
+                            foregroundColor: cs.onPrimaryContainer,
+                            child: Text(
+                              _initials(member.username),
+                              style: tt.labelLarge?.copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            member.username,
+                            style: tt.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
               ],
+              ),
             ),
           ),
         );
       },
+    );
+  }
+
+  static String _initials(String username) {
+    final t = username.trim();
+    if (t.isEmpty) return '?';
+    if (t.length >= 2) {
+      return t.substring(0, 2).toUpperCase();
+    }
+    return t.toUpperCase();
+  }
+}
+
+class _TeamHeroCard extends StatelessWidget {
+  const _TeamHeroCard({
+    required this.name,
+    required this.code,
+    required this.description,
+    required this.memberCount,
+    required this.onCopyCode,
+    required this.onLeave,
+  });
+
+  final String name;
+  final String code;
+  final String description;
+  final int memberCount;
+  final VoidCallback onCopyCode;
+  final VoidCallback onLeave;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            cs.primaryContainer.withValues(alpha: 0.92),
+            cs.tertiaryContainer.withValues(alpha: 0.35),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: cs.shadow.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(18, 18, 12, 18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: tt.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.4,
+                          color: cs.onPrimaryContainer,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Material(
+                        color: cs.surface.withValues(alpha: 0.55),
+                        borderRadius: BorderRadius.circular(14),
+                        child: InkWell(
+                          onTap: onCopyCode,
+                          borderRadius: BorderRadius.circular(14),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.tag_rounded,
+                                  size: 18,
+                                  color: cs.onSurface,
+                                ),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    code,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: tt.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.5,
+                                      color: cs.onSurface,
+                                      fontFeatures: const [
+                                        FontFeature.tabularFigures(),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(
+                                  Icons.copy_rounded,
+                                  size: 18,
+                                  color: cs.primary,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Выйти из команды',
+                  onPressed: onLeave,
+                  style: IconButton.styleFrom(
+                    foregroundColor: cs.error,
+                  ),
+                  icon: const Icon(Icons.logout_rounded, size: 26),
+                ),
+              ],
+            ),
+            if (description.trim().isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                description,
+                style: tt.bodyMedium?.copyWith(
+                  color: cs.onPrimaryContainer.withValues(alpha: 0.88),
+                  height: 1.35,
+                ),
+              ),
+            ],
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Icon(
+                  Icons.groups_rounded,
+                  size: 18,
+                  color: cs.onPrimaryContainer.withValues(alpha: 0.75),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '$memberCount участник${memberCount == 1 ? '' : memberCount < 5 ? 'а' : 'ов'}',
+                  style: tt.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: cs.onPrimaryContainer.withValues(alpha: 0.8),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -212,41 +427,71 @@ class TeamQrPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
     return Scaffold(
+      backgroundColor: cs.surface,
       appBar: AppBar(
-        title: Text(teamName, style: Theme.of(context).textTheme.titleMedium),
-        backgroundColor: Colors.grey[200],
-        foregroundColor: Colors.black87,
+        title: Text(
+          teamName,
+          style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: Center(
-        child: Container(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 10,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              QrImageView(
-                data: teamId,
-                version: QrVersions.auto,
-                size: 240,
-                backgroundColor: Colors.white,
-              ),
-              const SizedBox(height: 16),
               Text(
-                'ID: $teamId',
-                style: const TextStyle(
-                  color: Colors.black54,
-                  fontWeight: FontWeight.w600,
+                'Покажите QR другим игрокам — они смогут ввести код и присоединиться.',
+                textAlign: TextAlign.center,
+                style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+              ),
+              const SizedBox(height: 28),
+              Container(
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: cs.shadow.withValues(alpha: 0.06),
+                      blurRadius: 24,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    QrImageView(
+                      data: teamId,
+                      version: QrVersions.auto,
+                      size: 220,
+                      eyeStyle: QrEyeStyle(
+                        eyeShape: QrEyeShape.square,
+                        color: cs.onSurface,
+                      ),
+                      dataModuleStyle: QrDataModuleStyle(
+                        dataModuleShape: QrDataModuleShape.square,
+                        color: cs.onSurface,
+                      ),
+                      backgroundColor: cs.surfaceContainerLow,
+                    ),
+                    const SizedBox(height: 20),
+                    SelectableText(
+                      teamId,
+                      style: tt.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.6,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

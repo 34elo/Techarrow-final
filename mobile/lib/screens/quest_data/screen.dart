@@ -47,6 +47,20 @@ String _injectWordBreakHints(String input, {int maxRunWithoutBreak = 36}) {
   return buf.toString();
 }
 
+/// Formats elapsed seconds (e.g. API `best_completion_seconds`) as HH:MM:SS / MM:SS.
+String _formatCompletionSeconds(double seconds) {
+  if (seconds.isNaN || seconds.isInfinite || seconds < 0) return '—';
+  final d = Duration(milliseconds: (seconds * 1000).round());
+  final h = d.inHours;
+  final m = d.inMinutes.remainder(60);
+  final s = d.inSeconds.remainder(60);
+  final mm = m.toString().padLeft(2, '0');
+  final ss = s.toString().padLeft(2, '0');
+  if (h == 0) return '$mm:$ss';
+  final hh = h.toString().padLeft(2, '0');
+  return '$hh:$mm:$ss';
+}
+
 class _QuestDataScreenState extends State<QuestDataScreen> {
   late Quest _quest;
   bool _isTogglingFavorite = false;
@@ -57,6 +71,8 @@ class _QuestDataScreenState extends State<QuestDataScreen> {
   bool _isSendingComplaint = false;
   bool _isExportingPdf = false;
   bool _isUpdatingQuest = false;
+  bool _questDetailLoaded = false;
+  double? _bestCompletionSeconds;
 
   bool get _canStartQuest {
     final questState = StreamQuestScope.of(context);
@@ -102,6 +118,8 @@ class _QuestDataScreenState extends State<QuestDataScreen> {
       final detail = res.body;
       if (!mounted || detail == null) return;
       setState(() {
+        _questDetailLoaded = true;
+        _bestCompletionSeconds = detail.bestCompletionSeconds;
         _description = detail.description;
         _rulesAndWarnings = detail.rulesAndWarnings;
         _creatorId = detail.creator.id;
@@ -292,7 +310,7 @@ class _QuestDataScreenState extends State<QuestDataScreen> {
 
         return Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.paddingOf(sheetContext).bottom + 16,
+            bottom: MediaQuery.paddingOf(sheetContext).bottom + 24,
             left: 16,
             right: 16,
             top: 12,
@@ -389,7 +407,7 @@ class _QuestDataScreenState extends State<QuestDataScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: () async {
                       if (isStartingRun) return;
@@ -784,6 +802,9 @@ class _QuestDataScreenState extends State<QuestDataScreen> {
                     canFavorite: _isPublished,
                     isTogglingFavorite: _isTogglingFavorite,
                     onToggleFavorite: _toggleFavorite,
+                    isDetailLoading: _isLoadingDetail,
+                    detailLoaded: _questDetailLoaded,
+                    bestCompletionSeconds: _bestCompletionSeconds,
                   ),
                   const SizedBox(height: 20),
                   _InfoSection(
@@ -816,7 +837,7 @@ class _QuestDataScreenState extends State<QuestDataScreen> {
                 const Spacer(),
                 SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                     child: Row(
                       children: [
                         Expanded(
@@ -865,6 +886,9 @@ class _SummaryCard extends StatelessWidget {
     required this.canFavorite,
     required this.isTogglingFavorite,
     required this.onToggleFavorite,
+    required this.isDetailLoading,
+    required this.detailLoaded,
+    required this.bestCompletionSeconds,
   });
 
   final ColorScheme colorScheme;
@@ -874,6 +898,9 @@ class _SummaryCard extends StatelessWidget {
   final bool canFavorite;
   final bool isTogglingFavorite;
   final VoidCallback onToggleFavorite;
+  final bool isDetailLoading;
+  final bool detailLoaded;
+  final double? bestCompletionSeconds;
 
   @override
   Widget build(BuildContext context) {
@@ -881,6 +908,12 @@ class _SummaryCard extends StatelessWidget {
         ? '${quest.checkpointsCount}'
         : '—';
     final status = _statusLabel(quest.status);
+    final recordLabel = switch ((isDetailLoading, detailLoaded, bestCompletionSeconds)) {
+      (true, _, _) => 'Рекорд: загрузка…',
+      (false, false, _) => 'Рекорд: —',
+      (false, true, final double s) => 'Рекорд: ${_formatCompletionSeconds(s)}',
+      (false, true, null) => 'Рекорд пока не установлен',
+    };
 
     return Container(
       decoration: BoxDecoration(
@@ -1010,6 +1043,12 @@ class _SummaryCard extends StatelessWidget {
                     _QuestBadge(
                       icon: Icons.route_outlined,
                       label: _injectWordBreakHints('$checkpoints чекпоинтов'),
+                      backgroundColor: colorScheme.surfaceContainerHighest,
+                      foregroundColor: colorScheme.onSurfaceVariant,
+                    ),
+                    _QuestBadge(
+                      icon: Icons.emoji_events_outlined,
+                      label: _injectWordBreakHints(recordLabel),
                       backgroundColor: colorScheme.surfaceContainerHighest,
                       foregroundColor: colorScheme.onSurfaceVariant,
                     ),
