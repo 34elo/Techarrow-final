@@ -12,7 +12,7 @@ Flutter (Dart SDK ^3.11) · Material 3 · `go_router` (роутинг) · `chopp
 
 ## Запуск
 
-Нужен **Flutter SDK ^3.11**. Backend должен быть доступен по `API_BASE_URL` (по умолчанию `http://localhost:8000`).
+Нужен **Flutter SDK ^3.11**. Backend должен быть доступен по `API_BASE_URL`. Локально по умолчанию `http://localhost:8000`; на развёрнутом стенде — `https://api.tarr.ssrit.xyz`.
 
 ```bash
 flutter pub get

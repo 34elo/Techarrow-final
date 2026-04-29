@@ -2,7 +2,7 @@
 
 Каталог квестов, прохождение чекпоинтов с геолокацией (соло и командой), создание собственных квестов с модерацией, рейтинг и достижения. Next.js 16 + React 19 + TanStack Query + Tailwind + shadcn/ui + MapLibre GL поверх OpenStreetMap.
 
-Backend поднимается отдельно и должен быть доступен по `NEXT_PUBLIC_API_URL` (по умолчанию `http://localhost:8000`).
+Backend поднимается отдельно и должен быть доступен по `NEXT_PUBLIC_API_URL`. Локально по умолчанию `http://localhost:8000`; на развёрнутом стенде — `https://api.tarr.ssrit.xyz`.
 
 ## Запуск
 

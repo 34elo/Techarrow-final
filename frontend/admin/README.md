@@ -2,7 +2,7 @@
 
 Очередь квестов на модерацию, одобрение и отклонение с причиной, обработка жалоб. Next.js 16 + React 19 + TanStack Query + Tailwind + shadcn/ui.
 
-Backend поднимается отдельно и должен быть доступен по `NEXT_PUBLIC_API_URL` (по умолчанию `http://localhost:8000`).
+Backend поднимается отдельно и должен быть доступен по `NEXT_PUBLIC_API_URL`. Локально по умолчанию `http://localhost:8000`; на развёрнутом стенде — `https://api.tarr.ssrit.xyz`.
 
 ## Запуск
 
@@ -31,8 +31,8 @@ pnpm dev
 
 | Поле | Значение |
 |---|---|
-| Email | `moderator@patissons.ru` |
-| Пароль | `demo1234` |
+| Email | `moder@moder.ru` |
+| Пароль | `11111111` |
 
 Аккаунт с ролью `user` в этой панели не работает — клиент отзывает токен и редиректит на `/access_denied`.
 

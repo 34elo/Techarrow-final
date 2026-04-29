@@ -1,5 +1,7 @@
 # Окружение и API
 
+Развёрнутый экземпляр API и Swagger: <https://api.tarr.ssrit.xyz> (документация — <https://api.tarr.ssrit.xyz/docs>, OpenAPI JSON — <https://api.tarr.ssrit.xyz/openapi.json>).
+
 ## Переменные
 
 Источник: `src/settings.py` (`pydantic-settings`), шаблон: `.env.example` / готовый `.env`.

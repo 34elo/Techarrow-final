@@ -27,11 +27,11 @@
 
 #### Для жюри
 
-Готовая учётка модератора для проверки админ-панели:
+Готовая учётка модератора для проверки админ-панели (<https://admin.tarr.ssrit.xyz>):
 
-| Роль      | Логин       | Пароль     | Почта                  | 
-| --------- | ----------- | ---------- | -----------------------|
-| Модератор | `moderator` | `demo1234`  | moderator@patissons.ru |
+| Роль      | Email           | Пароль     |
+| --------- | --------------- | ---------- |
+| Модератор | `moder@moder.ru` | `11111111` |
 
 ## Структура
 
@@ -99,14 +99,14 @@ JWT с access (15 мин) и refresh (7 дней) токенами. Refresh-то
 | Frontend admin — панель модерации              | `[frontend/admin/README.md](./frontend/admin/README.md)`, `[frontend/admin/docs/](./frontend/admin/docs)`                                      |
 | Mobile — Flutter-приложение                    | `[mobile/README.md](./mobile/README.md)`, `[mobile/docs/](./mobile/docs)`                                                                      |
 | Командные квесты — backend-флоу                | `[mobile/team-quests.md](./mobile/team-quests.md)`                                                                                             |
-| Контракт REST                                  | Swagger UI бекенда `/docs`, `[frontend/openapi.json](./frontend/openapi.json)`, `[mobile/openapi/swagger.json](./mobile/openapi/swagger.json)` |
+| Контракт REST                                  | [Swagger UI](https://api.tarr.ssrit.xyz/docs), `[frontend/openapi.json](./frontend/openapi.json)`, `[mobile/openapi/swagger.json](./mobile/openapi/swagger.json)` |
 
 
 ## Карта зависимостей
 
 ```
                 ┌──────────────────────────────┐
-                │         backend (API)        │пш
+                │         backend (API)        │
                 │  FastAPI + Postgres + Redis  │
                 │            + MinIO           │
                 └──────────────┬───────────────┘

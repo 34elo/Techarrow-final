@@ -2,7 +2,7 @@
 
 REST API платформы городских квестов. Авторизация по JWT, хранение прогресса, командные раны с readiness-механикой, файлы в S3, кэш и refresh-токены в Redis.
 
-> Этот репозиторий — **только backend**. Клиенты (web, admin, mobile) поднимаются отдельно и ходят сюда по `http://<host>:8000`. Контракт API — Swagger UI на `/docs`, машинно-читаемая схема — `/openapi.json`.
+> Этот репозиторий — **только backend**. Клиенты (web, admin, mobile) поднимаются отдельно и ходят сюда по базовому URL API: локально `http://<host>:8000`, на стенде — `https://api.tarr.ssrit.xyz`. Контракт API — Swagger UI на `/docs` (например <https://api.tarr.ssrit.xyz/docs>), машинно-читаемая схема — `/openapi.json`.
 
 ## Стек
 
@@ -70,4 +70,4 @@ python create_mock_data.py
 | Архитектура (слои, БД-схема, авторизация, командные раны) | [`docs/architecture.md`](./docs/architecture.md) |
 | Переменные окружения и полный список путей API | [`docs/environment-and-api.md`](./docs/environment-and-api.md) |
 | Командные квесты — детальный flow | [`team-quests.md`](../mobile/team-quests.md) (общий с фронтом) |
-| Контракт REST | Swagger UI на `/docs`, `frontend/openapi.json` |
+| Контракт REST | Swagger UI: локально `/docs`, на стенде <https://api.tarr.ssrit.xyz/docs>; машинная схема — `frontend/openapi.json` |

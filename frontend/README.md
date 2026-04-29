@@ -56,7 +56,7 @@ Hot-reload в контейнере:
 docker compose -f docker-compose.dev.yml up --build
 ```
 
-`.env` в корне — единственный источник переменных (`NEXT_PUBLIC_API_URL`, `WEB_PORT`, `ADMIN_PORT`). `NEXT_PUBLIC_*` запекается в бандл на этапе сборки — после правки делайте `docker compose build`.
+`.env` в корне — единственный источник переменных (`NEXT_PUBLIC_API_URL`, `WEB_PORT`, `ADMIN_PORT`). `NEXT_PUBLIC_*` запекается в бандл на этапе сборки — после правки делайте `docker compose build`. Для развёрнутого API укажите `NEXT_PUBLIC_API_URL=https://api.tarr.ssrit.xyz`.
 
 ### Локально
 
