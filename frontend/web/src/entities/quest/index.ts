@@ -5,6 +5,7 @@ export {
   getDifficultyLabel,
   getQuestStatusLabel,
   formatQuestDuration,
+  formatBestCompletion,
 } from "./model/types";
 export type {
   Quest,

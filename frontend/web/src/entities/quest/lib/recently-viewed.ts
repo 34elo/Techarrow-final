@@ -44,6 +44,7 @@ function toSnapshot(quest: Quest): Quest {
       username: quest.creator.username,
       team_name: quest.creator.team_name ?? null,
     },
+    best_completion_seconds: quest.best_completion_seconds,
   };
 }
 

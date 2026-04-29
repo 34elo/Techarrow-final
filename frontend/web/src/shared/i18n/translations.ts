@@ -50,6 +50,7 @@ export const translations = {
       byAuthor: "от {author}",
       defaultLocation: "Местоположение",
       noLocation: "Без локации",
+      bestTime: "Рекорд",
     },
     questStatus: {
       on_moderation: "На модерации",
@@ -684,6 +685,7 @@ export const translations = {
       byAuthor: "by {author}",
       defaultLocation: "Location",
       noLocation: "No location",
+      bestTime: "Record",
     },
     questStatus: {
       on_moderation: "Under review",
@@ -1302,6 +1304,7 @@ export const translations = {
       byAuthor: "par {author}",
       defaultLocation: "Lieu",
       noLocation: "Sans lieu",
+      bestTime: "Record",
     },
     questStatus: {
       on_moderation: "En modération",
@@ -1928,6 +1931,7 @@ export const translations = {
       byAuthor: "{author} द्वारा",
       defaultLocation: "स्थान",
       noLocation: "कोई स्थान नहीं",
+      bestTime: "रिकॉर्ड",
     },
     questStatus: {
       on_moderation: "समीक्षा में",

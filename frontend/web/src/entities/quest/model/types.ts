@@ -43,6 +43,7 @@ export type Quest = {
   latitude: number;
   longitude: number;
   creator: QuestCreator;
+  best_completion_seconds: number | null;
 };
 
 export type QuestDetail = Quest & {
@@ -70,6 +71,16 @@ export function formatQuestDuration(
   translate: (key: string, params?: Record<string, string | number>) => string,
 ): string {
   return translate("quest.durationLabel", { count: minutes });
+}
+
+export function formatBestCompletion(totalSeconds: number): string {
+  const s = Math.max(0, Math.round(totalSeconds));
+  const hours = Math.floor(s / 3600);
+  const minutes = Math.floor((s % 3600) / 60);
+  const seconds = s % 60;
+  const mm = String(minutes).padStart(2, "0");
+  const ss = String(seconds).padStart(2, "0");
+  return hours > 0 ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
 export function getQuestStatusLabel(

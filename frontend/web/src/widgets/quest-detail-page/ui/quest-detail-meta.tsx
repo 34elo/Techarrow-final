@@ -1,8 +1,9 @@
 "use client";
 
-import { Clock3, Compass, MapPin, Sparkles, User } from "lucide-react";
+import { Clock3, Compass, MapPin, Sparkles, Trophy, User } from "lucide-react";
 
 import {
+  formatBestCompletion,
   getDifficultyLabel,
   parseLocation,
   type QuestDetail,
@@ -40,6 +41,12 @@ export function QuestDetailMeta({ quest }: QuestDetailMetaProps) {
         <Compass className="size-4" aria-hidden />
         {t("questDetail.checkpointsCount", { count: quest.points.length })}
       </span>
+      {quest.best_completion_seconds != null ? (
+        <Badge variant="success">
+          <Trophy className="size-3.5" aria-hidden />
+          {t("quest.bestTime")}: {formatBestCompletion(quest.best_completion_seconds)}
+        </Badge>
+      ) : null}
     </div>
   );
 }

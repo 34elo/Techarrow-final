@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { CheckCircle2, Clock3, MapPin } from "lucide-react";
+import { CheckCircle2, Clock3, MapPin, Trophy } from "lucide-react";
 
 import {
+  formatBestCompletion,
   getDifficultyLabel,
   getQuestCoverImageUrl,
   getQuestStatusLabel,
@@ -119,6 +120,15 @@ export function QuestCard({
               <Clock3 className="size-3.5" aria-hidden />
               {t("quest.durationLabel", { count: quest.duration_minutes })}
             </span>
+            {quest.best_completion_seconds != null ? (
+              <span
+                className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400"
+                title={t("quest.bestTime")}
+              >
+                <Trophy className="size-3.5" aria-hidden />
+                {formatBestCompletion(quest.best_completion_seconds)}
+              </span>
+            ) : null}
             <span className="text-muted-foreground/80">
               {t("quest.byAuthor", { author: quest.creator.username })}
             </span>
