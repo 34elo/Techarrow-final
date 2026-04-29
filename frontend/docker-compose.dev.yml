@@ -1,0 +1,32 @@
+name: geo-vyzov-dev
+
+services:
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.dev
+    env_file:
+      - .env
+    environment:
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile.dev
+    env_file:
+      - .env
+    environment:
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    ports:
+      - "${ADMIN_PORT:-3001}:3000"
+    volumes:
+      - ./admin:/app
+      - /app/node_modules

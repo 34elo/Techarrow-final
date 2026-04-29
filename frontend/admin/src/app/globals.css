@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+:root,
+.light {
+  --md-sys-color-primary: rgb(30 101 134);
+  --md-sys-color-surface-tint: rgb(30 101 134);
+  --md-sys-color-on-primary: rgb(255 255 255);
+  --md-sys-color-primary-container: rgb(197 231 255);
+  --md-sys-color-on-primary-container: rgb(0 76 106);
+  --md-sys-color-secondary: rgb(78 97 109);
+  --md-sys-color-on-secondary: rgb(255 255 255);
+  --md-sys-color-secondary-container: rgb(209 229 244);
+  --md-sys-color-on-secondary-container: rgb(55 73 85);
+  --md-sys-color-tertiary: rgb(97 90 124);
+  --md-sys-color-on-tertiary: rgb(255 255 255);
+  --md-sys-color-tertiary-container: rgb(231 222 255);
+  --md-sys-color-on-tertiary-container: rgb(73 66 99);
+  --md-sys-color-error: rgb(186 26 26);
+  --md-sys-color-on-error: rgb(255 255 255);
+  --md-sys-color-error-container: rgb(255 218 214);
+  --md-sys-color-on-error-container: rgb(147 0 10);
+  --md-sys-color-background: rgb(246 250 254);
+  --md-sys-color-on-background: rgb(24 28 31);
+  --md-sys-color-surface: rgb(246 250 254);
+  --md-sys-color-on-surface: rgb(24 28 31);
+  --md-sys-color-surface-variant: rgb(221 227 234);
+  --md-sys-color-on-surface-variant: rgb(65 72 77);
+  --md-sys-color-outline: rgb(113 120 126);
+  --md-sys-color-outline-variant: rgb(193 199 205);
+  --md-sys-color-shadow: rgb(0 0 0);
+  --md-sys-color-scrim: rgb(0 0 0);
+}
+
+.dark {
+  --md-sys-color-primary: rgb(144 206 244);
+  --md-sys-color-surface-tint: rgb(144 206 244);
+  --md-sys-color-on-primary: rgb(0 52 74);
+  --md-sys-color-primary-container: rgb(0 76 106);
+  --md-sys-color-on-primary-container: rgb(197 231 255);
+  --md-sys-color-secondary: rgb(182 201 216);
+  --md-sys-color-on-secondary: rgb(32 51 62);
+  --md-sys-color-secondary-container: rgb(55 73 85);
+  --md-sys-color-on-secondary-container: rgb(209 229 244);
+  --md-sys-color-tertiary: rgb(203 193 233);
+  --md-sys-color-on-tertiary: rgb(50 44 76);
+  --md-sys-color-tertiary-container: rgb(73 66 99);
+  --md-sys-color-on-tertiary-container: rgb(231 222 255);
+  --md-sys-color-error: rgb(255 180 171);
+  --md-sys-color-on-error: rgb(105 0 5);
+  --md-sys-color-error-container: rgb(147 0 10);
+  --md-sys-color-on-error-container: rgb(255 218 214);
+  --md-sys-color-background: rgb(15 20 23);
+  --md-sys-color-on-background: rgb(223 227 231);
+  --md-sys-color-surface: rgb(15 20 23);
+  --md-sys-color-on-surface: rgb(223 227 231);
+  --md-sys-color-surface-variant: rgb(65 72 77);
+  --md-sys-color-on-surface-variant: rgb(193 199 205);
+  --md-sys-color-outline: rgb(139 146 151);
+  --md-sys-color-outline-variant: rgb(65 72 77);
+  --md-sys-color-shadow: rgb(0 0 0);
+  --md-sys-color-scrim: rgb(0 0 0);
+}
+
+:root {
+  --background: var(--md-sys-color-background);
+  --foreground: var(--md-sys-color-on-background);
+  --card: var(--md-sys-color-surface);
+  --card-foreground: var(--md-sys-color-on-surface);
+  --primary: var(--md-sys-color-primary);
+  --primary-foreground: var(--md-sys-color-on-primary);
+  --secondary: var(--md-sys-color-secondary-container);
+  --secondary-foreground: var(--md-sys-color-on-secondary-container);
+  --muted: var(--md-sys-color-surface-variant);
+  --muted-foreground: var(--md-sys-color-on-surface-variant);
+  --accent: var(--md-sys-color-tertiary-container);
+  --accent-foreground: var(--md-sys-color-on-tertiary-container);
+  --border: var(--md-sys-color-outline-variant);
+  --input: var(--md-sys-color-outline-variant);
+  --ring: var(--md-sys-color-primary);
+  --destructive: var(--md-sys-color-error);
+  --destructive-foreground: var(--md-sys-color-on-error);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Unified corner radius across the admin app — keep `full` round for avatars. */
+  --radius-md: 14px;
+  --radius-lg: 14px;
+  --radius-xl: 14px;
+  --radius-2xl: 14px;
+  --radius-3xl: 14px;
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}

@@ -1,0 +1,71 @@
+# Mobile — пользовательское приложение ГеоВызов
+
+Flutter-приложение для игроков: каталог квестов, прохождение чекпоинтов с геолокацией и шагомером, командные раны, рейтинг, достижения и создание собственных квестов в 5 шагов. Подключается к backend по REST.
+
+> Только клиентская часть. Backend поднимается отдельно (см. [`backend/`](../backend)). Контракт API — `openapi/swagger.json`, по нему собирается типизированный клиент.
+
+## Стек
+
+Flutter (Dart SDK ^3.11) · Material 3 · `go_router` (роутинг) · `chopper` + `swagger_dart_code_generator` (HTTP-клиент по OpenAPI) · `flutter_secure_storage` (токены) · `flutter_map` + `latlong2` (карты) · `geolocator` + `pedometer` (геолокация и шаги) · `mobile_scanner` + `qr_flutter` (QR-инвайты в команды) · `image_picker`, `image`, `share_plus`
+
+Архитектура — простая, по фичам: `screens/<feature>/` с экраном и его подстраницами + `services/` для глобального состояния и API.
+
+## Запуск
+
+Нужен **Flutter SDK ^3.11**. Backend должен быть доступен по `API_BASE_URL` (по умолчанию `http://localhost:8000`).
+
+```bash
+flutter pub get
+cp .env.example .env             # правьте при необходимости
+make gen-swag                    # сгенерировать Chopper-клиент по openapi/swagger.json
+flutter run                      # на подключённом устройстве/эмуляторе
+```
+
+`make gen-swag` пересобирает `lib/gen/` из `openapi/swagger.json` через `build_runner`. Делайте после каждого обновления контракта API.
+
+### Сборка релиза
+
+```bash
+flutter build apk --release      # Android
+flutter build ios --release      # iOS (нужен macOS)
+```
+
+## Возможности
+
+- **Каталог квестов** с фильтрами по сложности, длительности, городу и поиском.
+- **Прохождение** с пошаговым шагомером (`pedometer`), таймером и подтягиванием активной сессии при перезапуске приложения.
+- **Командные раны** с готовностью, обратным отсчётом 5 секунд и поллингом статуса.
+- **Команды** с QR-инвайтом и сканером, выходом и киком участников создателем.
+- **Создание квеста** в 5 шагов (общая инфо → правила → точки на карте → чекпоинты → обложка) с черновиками в `flutter_secure_storage`.
+- **Рейтинг** игроков и команд с подсветкой собственной позиции.
+- **Достижения** и история прохождений в профиле.
+- **Только роль `user`**: модераторская консоль живёт во `frontend/admin`.
+
+## Демо
+
+Сайт проекта: <https://example.com> (заглушка). Сборка APK для Android: <https://example.com/app.apk>.
+
+Демо-аккаунты создаются на backend скриптом `python backend/create_mock_data.py`. Пароль у всех — `11111111`:
+
+| Email | Описание |
+|---|---|
+| `mock.alisa@example.com` | Состоит в команде, есть пройденные квесты |
+| `mock.boris@example.com` | Состоит в команде, есть пройденные квесты |
+| `mock.vika@example.com` | Состоит в команде, есть пройденные квесты |
+| `mock.denis@example.com` | Состоит в команде, есть пройденные квесты |
+| `mock.elena@example.com` | Состоит в команде, есть пройденные квесты |
+
+Модераторский аккаунт (`mock.moderator@example.com`) приложением не поддерживается — заходите в [`frontend/admin`](../frontend/admin).
+
+## Регистрация
+
+Создаётся через экран входа — email, никнейм, дата рождения, пароль ≥ 8 символов. Вход с ролью `moderator` приложением не поддерживается.
+
+## Документация
+
+| Раздел | Файл |
+|---|---|
+| Архитектура (роутинг, состояние, генерация клиента, карты, шагомер) | [`docs/architecture.md`](./docs/architecture.md) |
+| HTTP-клиент, переменные, пути API | [`docs/environment-and-api.md`](./docs/environment-and-api.md) |
+| Командные квесты — backend-флоу | [`team-quests.md`](./team-quests.md) |
+| Контракт REST | [`openapi/swagger.json`](./openapi/swagger.json) |

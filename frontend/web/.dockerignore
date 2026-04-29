@@ -1,0 +1,34 @@
+# Build / install artefacts
+node_modules
+.next
+.pnpm-store
+coverage
+
+# Local env (anything except the example template)
+.env
+.env.*
+!.env.example
+
+# VCS / editor / OS
+.git
+.gitignore
+.DS_Store
+.claude
+.cursor
+.vscode
+.idea
+
+# Docs (keep README, drop everything else like CHANGELOG.md, AGENTS.md, …)
+*.md
+!README.md
+
+# Docker meta — never copy itself into the image
+Dockerfile
+Dockerfile.*
+.dockerignore
+docker-compose*.yml
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

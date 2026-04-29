@@ -1,0 +1,12 @@
+targets:
+  $default:
+    sources:
+      - openapi/**
+      - lib/**
+    builders:
+      swagger_dart_code_generator:
+        generate_for:
+          - openapi/*.json
+        options:
+          input_folder: openapi
+          output_folder: lib/gen/
